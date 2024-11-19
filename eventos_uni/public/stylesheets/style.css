@@ -1,6 +1,13 @@
 body {
-  padding: 50px;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+.main-container{
+  padding: 2rem;
+}
+
+.navbar{
+  padding: 1rem;  
 }
 
 a {
