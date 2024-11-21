@@ -3,23 +3,60 @@
 
 <head>
   <%- include("head") %>
+    <link rel="stylesheet" href="/stylesheets/login.css" type="text/css">
 </head>
 
-<body>
+<body class="default" data-bs-theme="dark">
   <%- include("navbar") %>
 
-    <div class="main-container">
-      <h1>
-        <%= title %>
-      </h1>
-      <p>Welcome to <%= title %>
-      </p>
-      
-      <h1>REGISTRO</h1>
+    <div class="container">
+      <!--modificar con ejs en vez de thymleaf
+        
+        <p th:if="${registroExitoso}" class="eslogan registro-message" th:text="${registroExitoso}">Registro llevado a
+          cabo
+          con exito. Por favor, inicie sesión.</p> -->
+      <form class="form-signin" method="post">
+        <h2 class="form-signin-heading text-center">Formulario de registro</h2>
 
 
+        <label for="registerNombre">Nombre Completo</label>
+        <input type="email" id="registerNombre" name="registerNombre" class="form-control"
+          placeholder="Escriba su nombre completo" required="required">
+
+        <label for="registerEmail">Correo Eléctronico</label>
+        <input type="email" id="registerEmail" name="registerEmail" class="form-control"
+          placeholder="example@domain.com" required="required">
+
+        <label for="registerPassword">Contraseña</label>
+        <div class="input-group">
+          <input type="password" id="registerPassword" name="registerPassword" class="form-control"
+            placeholder="Contraseña" required="required">
+          <div class="input-group-append">
+            <button type="button" id="mostrarLoginPassword"
+              class="btn btn-accesibilidad outline toggle-password-btn">Mostrar</button>
+          </div>
+        </div>
+        
+        <label for="registerTelefono">Número de telefono</label>
+        <input type="tel" id="registerTelefono" name="registerTelefono" class="form-control"
+          placeholder="123-456-789" size="12">
+        
+
+        <div class="text-center mt-3">
+          <button class="btn btn-accesibilidad outline  btn-lg " type="submit">
+            <i class="fa-regular fa-clipboard"></i> Registrar</button>
+        </div>
+
+      </form>
+      <!-- Texto para animar al usuario a registrarse -->
+      <div class="text-center mt-3">
+        <a class="register-text" href="/registro">¿No tienes una cuenta? Regístrate
+          aquí.</a>
+      </div>
     </div>
+
     <%- include("footer") %>
+      <script src="/javascripts/login.js"></script>
 </body>
 
 </html>

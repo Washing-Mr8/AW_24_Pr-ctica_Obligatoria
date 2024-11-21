@@ -15,17 +15,14 @@
 }
 
 .form-signin{
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
 }
 
 .form-signin-heading {
-    margin-bottom: 3rem; /* Añadir espacio debajo del título */
+    margin-bottom: 1rem; /* Añadir espacio debajo del título */
     font-family: Tahoma, Geneva, sans-serif; /* Cambia la fuente del título */
 }
 
-.form-signin p {
-    margin-bottom: 10px; /* Añadir espacio debajo de los párrafos */
-}
 
 .register-text{
     color:whitesmoke;
@@ -34,16 +31,18 @@
 
 input{
     background-color: rgba(245, 245, 245, 0.693);
+    margin-bottom: 1rem;
+
 }
 
+
 .container {
-    margin: 50px auto;
-    background-color:#845ec285; /* Fondo semi-transparente */
+    margin: 40px auto;
+    background-color:#845ec2; /* Fondo semi-transparente */
     border-radius: 10px;
     max-width: 100vh;
     width: 100%;
-    padding: 50px;
-   
+    padding: 50px;   
     /* font-family: 'Roboto', sans-serif; */
     /* font-family: 'Lato', sans-serif; */
     /*font-family: 'Montserrat', sans-serif;*/

@@ -60,6 +60,10 @@ a {
   width: 100vh;
 }
 
+.accesibilidad{
+  color: #00c9a7;
+}
+
 .btn-accesibilidad:hover , .btn-accesibilidad.outline:hover , .btn-accesibilidad.active{
   color: white;
   background-color:#00c9a7 ;
