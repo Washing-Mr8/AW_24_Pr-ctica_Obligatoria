@@ -3,23 +3,52 @@
 
 <head>
   <%- include("head") %>
+    <link rel="stylesheet" href="/stylesheets/login.css" type="text/css">
 </head>
 
-<body>
+<body class="default" data-bs-theme="dark">
   <%- include("navbar") %>
 
-    <div class="main-container">
-      <h1>
-        <%= title %>
-      </h1>
-      <p>Welcome to <%= title %>
-      </p>
-      
-      <h1>LOGIN</h1>
+    <div class="container">
+      <!--modificar con ejs en vez de thymleaf
+        
+        <p th:if="${registroExitoso}" class="eslogan registro-message" th:text="${registroExitoso}">Registro llevado a
+          cabo
+          con exito. Por favor, inicie sesión.</p> -->
+      <form class="form-signin" method="post" th:action="@{/login}">
+        <h2 class="form-signin-heading text-center">Por favor, inicie sesión</h2>
 
+        <p>
+          <label for="loginEmail" class="visually-hidden">Email</label>
+          <input type="email" id="loginEmail" name="loginEmail" class="form-control" placeholder="Correo electrónico"
+            required="required">
+        </p>
+        <p>
+          <label for="loginPassword" class="visually-hidden">Password</label>
+        <div class="input-group">
+          <input type="password" id="loginPassword" name="loginPassword" class="form-control" placeholder="Contraseña"
+            required="required">
+          <div class="input-group-append">
+            <button type="button" id="mostrarLoginPassword"
+              class="btn btn-accesibilidad outline toggle-password-btn">Mostrar</button>
+          </div>
+        </div>
+        </p>
+        <div class="text-center mt-3">
+          <button class="btn btn-accesibilidad  btn-lg " type="submit">
+            <i class="fa-solid fa-right-to-bracket"></i> Iniciar sesión</button>
+        </div>
 
+      </form>
+      <!-- Texto para animar al usuario a registrarse -->
+      <div class="text-center mt-3">
+        <a class="register-text" href="/registro">¿No tienes una cuenta? Regístrate
+          aquí.</a>
+      </div>
     </div>
+
     <%- include("footer") %>
+      <script src="/javascripts/login.js"></script>
 </body>
 
 </html>
