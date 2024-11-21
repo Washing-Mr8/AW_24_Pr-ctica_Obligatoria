@@ -73,7 +73,7 @@
             <div class="row mb-3">
               <div class="col-md-6">
                 <label for="location" class="form-label">Ubicación</label>
-                <select id="locationType" name="eventType" class="form-select" required>
+                <select id="eventLocation" name="eventLocation" class="form-select" required>
                   <% locations.forEach(location => { %>
                     <option value = "<% location.ID %>" ><%= location.Nombre %></option>
                   <% }); %>
