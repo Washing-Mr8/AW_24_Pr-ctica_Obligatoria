@@ -3,14 +3,18 @@ var router = express.Router();
 const pool = require('../database.js');
 
 router.get('/', function(req, res, next) {
+    
     pool.query('SELECT Titulo,Descripcion,Fecha,Hora,Ubicacion,Capacidad_Maxima,tipo FROM eventos WHERE Organizador_ID = ?', [1],(err,eventList)=>{
         if(err) throw err;
-        res.render('viewEvents', { title: 'Events', events:eventList });
+        pool.query('SELECT * FROM facultades',(err,locationList)=>{
+            if(err) throw err;
+            res.render('viewEvents', { title: 'Events', events:eventList, locations:locationList });
+        });
     });
    
 });
 router.post('/create',function(req,res){
-    const {eventTitle,eventType,eventDate,eventTime,eventLocation,eventCapacity,eventDescription} = req.body;
+    const {eventTitle,eventType,eventDate,eventTime,eventLocation,eventCapacity,eventDescription,} = req.body;
     idORganizer ='1'; // SACARLO DE LAS SESIONES CUANDO ESTE
     pool.query('SELECT Rol FROM usuarios WHERE ID = ?', [idORganizer], (err,user) =>{
         if(err) throw err;
@@ -18,11 +22,18 @@ router.post('/create',function(req,res){
             pool.query('SELECT id FROM eventos WHERE Titulo = ?',[eventTitle], (err,check)=>{
                 if(err) throw err;
                 if(check.length == 0){
-                    pool.query('INSERT INTO eventos (Titulo,Descripcion,Fecha,Hora,Ubicacion,Capacidad_Maxima,tipo,Organizador_ID) VALUES(?,?,?,?,?,?,?,?)',[eventTitle,eventDescription,eventDate,eventTime,eventLocation,eventCapacity,eventType,idORganizer], (err) =>{
-                        if(err) {
-                            throw err;
+                    pool.query('SELECT Hora FROM eventos WHERE Fecha = ? AND ', [eventDate], (err,time) =>{
+                        if(times.length != 0){
+                           times.forEach(time => {
+
+                           });
                         }
-                        res.redirect('/viewEvents');
+                        pool.query('INSERT INTO eventos (Titulo,Descripcion,Fecha,Hora,Ubicacion,Capacidad_Maxima,tipo,Organizador_ID) VALUES(?,?,?,?,?,?,?,?)',[eventTitle,eventDescription,eventDate,eventTime,eventLocation,eventCapacity,eventType,idORganizer], (err) =>{
+                            if(err) {
+                                throw err;
+                            }
+                            res.redirect('/viewEvents');
+                        });
                     });
                 }
             });
@@ -32,5 +43,9 @@ router.post('/create',function(req,res){
         }
     });
    
+});
+
+router.post('/delete/id', function(req,res){
+    pool.query('DELETE ')
 });
 module.exports = router;
