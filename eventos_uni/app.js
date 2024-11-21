@@ -20,6 +20,7 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var loginRouter = require('./routes/login');
 var registroRouter = require('./routes/registro');
+var eventsRouter = require('./routes/events');
 
 var app = express();
 const port = 3000;
@@ -40,6 +41,7 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/login', loginRouter);
 app.use('/registro', registroRouter);
+app.use('/viewEvents', eventsRouter);
 
 
 // catch 404 and forward to error handler
