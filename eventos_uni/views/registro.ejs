@@ -19,44 +19,57 @@
         <h2 class="form-signin-heading text-center">Formulario de registro</h2>
 
 
-        <label for="registerNombre">Nombre Completo</label>
-        <input type="email" id="registerNombre" name="registerNombre" class="form-control"
+        <label for="registerName">Nombre Completo</label>
+        <input type="email" id="registerName" name="registerName" class="form-control"
           placeholder="Escriba su nombre completo" required="required">
+          <div id="name-error"></div>
+
 
         <label for="registerEmail">Correo Eléctronico</label>
         <input type="email" id="registerEmail" name="registerEmail" class="form-control"
           placeholder="example@domain.com" required="required">
+        <div id="email-error"></div>
+
+
 
         <label for="registerPassword">Contraseña</label>
         <div class="input-group">
           <input type="password" id="registerPassword" name="registerPassword" class="form-control"
             placeholder="Contraseña" required="required">
           <div class="input-group-append">
-            <button type="button" id="mostrarLoginPassword"
+            <button type="button" id="mostrarRegisterPassword"
               class="btn btn-accesibilidad outline toggle-password-btn">Mostrar</button>
           </div>
         </div>
-        
-        <label for="registerTelefono">Número de telefono</label>
-        <input type="tel" id="registerTelefono" name="registerTelefono" class="form-control"
-          placeholder="123-456-789" size="12">
-        
+        <div id="password-error"></div>
+
+
+        <label for="registerPhone">Número de telefono</label>
+        <input type="tel" id="registerPhone" name="registerPhone" class="form-control" placeholder="+34 123 456 789"
+          size="12">
+        <div id="phone-error"></div>
+
+        <div class="roles-container text-center">
+          <input type="radio" class="btn-check" name="role" id="role-admin"  value="organizador" autocomplete="off"
+            checked>
+          <label class="btn btn-accesibilidad outline" for="role-admin">Organizador</label>
+
+          <input type="radio" class="btn-check" name="role" id="role-user"  value="asistente" autocomplete="off">
+          <label class="btn btn-accesibilidad outline" for="role-user">Asistente</label>
+        </div>
+
+
 
         <div class="text-center mt-3">
-          <button class="btn btn-accesibilidad outline  btn-lg " type="submit">
+          <button id="registerButton" class="btn btn-accesibilidad outline  btn-lg " type="submit" disabled>
             <i class="fa-regular fa-clipboard"></i> Registrar</button>
         </div>
 
       </form>
-      <!-- Texto para animar al usuario a registrarse -->
-      <div class="text-center mt-3">
-        <a class="register-text" href="/registro">¿No tienes una cuenta? Regístrate
-          aquí.</a>
-      </div>
     </div>
 
     <%- include("footer") %>
-      <script src="/javascripts/login.js"></script>
+      <script src="/javascripts/registro.js"></script>
 </body>
 
 </html>

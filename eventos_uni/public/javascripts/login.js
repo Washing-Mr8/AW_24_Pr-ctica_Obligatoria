@@ -1,6 +1,5 @@
+"use strict"
 $(document).ready(function() {
- 
- 
     document.getElementById('mostrarLoginPassword').addEventListener('click', function() {
         const passwordInput = document.getElementById('loginPassword');
         const toggleBtn = document.getElementById('mostrarLoginPassword');
