@@ -4,7 +4,7 @@ const pool = require('../database.js');
 
 router.get('/', function(req, res, next) {
     
-    pool.query('SELECT Titulo,Descripcion,Fecha,Hora,Ubicacion,Capacidad_Maxima,tipo FROM eventos WHERE Organizador_ID = ?', [1],(err,eventList)=>{
+    pool.query('SELECT * FROM eventos WHERE Organizador_ID = ?', [1],(err,eventList)=>{
         if(err) throw err;
         pool.query('SELECT * FROM facultades',(err,locationList)=>{
             if(err) throw err;
@@ -23,7 +23,7 @@ router.post('/create',function(req,res){
                 if(err) throw err;
                 if(check.length == 0){
                     pool.query('SELECT ID FROM facultades WHERE Nombre = ?', [eventLocation], (err,locationID) =>{
-                        pool.query('SELECT Hora, Duracion FROM eventos WHERE Fecha = ? AND IDfacultad = ? AND Ubicacion = ?', [eventDate, locationID.ID, eventExact], (err,repeated) =>{
+                        pool.query('SELECT Hora, Duracion FROM eventos WHERE Fecha = ? AND IDfacultad = ? AND Ubicacion = ?', [eventDate, locationID[0].ID, eventExact], (err,repeated) =>{
                             canInsert = true;
                             if(repeated.length != 0){
                                 repeated.forEach(repeatedEvent => {
@@ -33,8 +33,8 @@ router.post('/create',function(req,res){
                                 });
                             }
                             if(canInsert){
-                                pool.query('INSERT INTO eventos (Titulo,Descripcion,Fecha,Hora,Ubicacion,Capacidad_Maxima,tipo,Duracion,Capacidad_Actual,IDfacultad,Organizador_ID) VALUES(?,?,?,?,?,?,?,?,?,?,?)'
-                                    ,[eventTitle,eventDescription,eventDate,eventTime,eventLocation,eventCapacity,eventType,eventDuration,0,locationID.ID,idORganizer], (err) =>{
+                                pool.query('INSERT INTO eventos (Titulo,Descripcion,Fecha,Hora,Ubicacion,Capacidad_Maxima,tipo,Duracion,Capacidad_Actual,IDfacultad,Organizador_ID,facultad) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)'
+                                    ,[eventTitle,eventDescription,eventDate,eventTime,eventExact,eventCapacity,eventType,eventDuration,0,locationID[0].ID,idORganizer,eventLocation], (err) =>{
                                     if(err) {
                                         throw err;
                                     }
@@ -46,14 +46,31 @@ router.post('/create',function(req,res){
                 }
             });
         }
-        else{
-            //NO DEBERÍA NI PODER LLEGAR AQUÍ
-        }
     });
    
 });
 
-router.post('/delete/id', function(req,res){
-    pool.query('DELETE ')
+router.post('/delete/:id', function(req,res){
+    pool.query('DELETE FROM eventos WHERE id = ?', [req.params.id], (err) => {
+        if(err) throw err;
+        res.redirect("/viewEvents");
+    });
+});
+router.post('/edit/:id', function(req,res){
+    const eventId = req.params.id;
+  const {
+    eventTitle,
+    eventType,
+    eventDate,
+    eventTime,
+    eventDuration,
+    eventLocation,
+    eventExact,
+    eventCapacity,
+    eventDescription,
+  } = req.body;
+
+  pool.query
+
 });
 module.exports = router;

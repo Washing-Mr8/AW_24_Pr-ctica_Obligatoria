@@ -14,12 +14,13 @@
           <div class="list-group-item mb-3">
             <h4 class="mb-1"><%= event.Titulo %></h4>
             <p class="mb-2"><strong>Descripción:</strong> <%= event.Descripcion %></p>
-            <p class="mb-2"><strong>Fecha:</strong> <%= event.Fecha %> <strong>Hora:</strong> <%= event.Hora %></p>
-            <p class="mb-2"><strong>Ubicación:</strong> <%= event.Ubicacion %></p>
-            <p class="mb-2"><strong>Capacidad:</strong> <%= event.Capacidad_Maxima %> personas</p>
+            <p class="mb-2"><strong>Fecha:</strong> <%= new Date(event.Fecha).toISOString().split('T')[0] %> <strong>Hora:</strong> <%= event.Hora %></p>
+            <p class="mb-2"><strong>Duración:</strong> <%= event.Duracion %></p>
+            <p class="mb-2"><strong>Ubicación:</strong> <%= event.facultad %>:<%= event.Ubicacion %></p>
+            <p class="mb-2"><strong>Capacidad:</strong> <%= event.Capacidad_Actual %> / <%= event.Capacidad_Maxima %> personas</p>
             <p class="mb-2"><strong>Tipo de Evento:</strong> <%= event.tipo %></p>
-            <button class="btn btn-secondary btn-sm">Editar Evento</button>
-            <button class="btn btn-danger btn-sm"  data-bs-toggle="modal" data-bs-target="#deleteEventModal">Eliminar Evento</button>
+            <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editEventModal<%= event.ID %>">Editar Evento</button>
+            <button class="btn btn-danger btn-sm"  data-bs-toggle="modal" data-bs-target="#deleteEventModal<%= event.ID%>">Eliminar Evento</button>
           </div>
         <% }); %>
       </div>
@@ -75,7 +76,7 @@
                 <label for="location" class="form-label">Ubicación</label>
                 <select id="eventLocation" name="eventLocation" class="form-select" required>
                   <% locations.forEach(location => { %>
-                    <option value = "<% location.ID %>" ><%= location.Nombre %></option>
+                    <option><%= location.Nombre %></option>
                   <% }); %>
                 </select>
               </div>
@@ -98,17 +99,17 @@
       </div>
     </div>
   </div>
-
-  <div class="modal fade" id="deleteEventModal" tabindex="-1" aria-labelledby="deleteEventModalLabel" aria-hidden="true">
+  <% events.forEach(event => { %>
+  <div class="modal fade" id="deleteEventModal<%= event.ID%>" tabindex="-1" aria-labelledby="deleteEventModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h6 class="modal-title" id="deleteEventModalLabel">¿Estás seguro de que deseas eliminar este evento?</h6>
+          <h6 class="modal-title" id="deleteEventModalLabel">¿Estás seguro de que deseas eliminar el evento <%= event.Titulo%></h6>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <form id="deleteEventForm" method="POST" action="/viewEvents/delete">
+          <form id="deleteEventForm" method="POST" action="/viewEvents/delete/<%= event.ID%>">
             <input type="hidden" id="eventId" name="eventId" value="">
             <button type="submit" class="btn btn-danger">Eliminar Evento</button>
           </form>
@@ -116,6 +117,75 @@
       </div>
     </div>
   </div>
+  <% }); %>
+
+  <% events.forEach(event => { %>
+    <div class="modal fade" id="editEventModal<%= event.ID %>" tabindex="-1" aria-labelledby="editEventModalLabel<%= event.ID %>" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editEventModalLabel<%= event.ID %>">Editar Evento</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form action="/viewEvents/edit/<%= event.ID %>" method="POST" id="editEventForm<%= event.ID %>" class="mb-4">
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label for="editEventTitle<%= event.ID %>" class="form-label">Título</label>
+                  <input type="text" id="editEventTitle<%= event.ID %>" name="eventTitle" class="form-control" value="<%= event.Titulo %>" required>
+                </div>
+                <div class="col-md-6">
+                  <label for="editEventType<%= event.ID %>" class="form-label">Tipo de Evento</label>
+                  <select id="editEventType<%= event.ID %>" name="eventType" class="form-select" required>
+                    <option value="seminario" <%= event.tipo === 'seminario' ? 'selected' : '' %>>Seminario</option>
+                    <option value="taller" <%= event.tipo === 'taller' ? 'selected' : '' %>>Taller</option>
+                    <option value="conferencia" <%= event.tipo === 'conferencia' ? 'selected' : '' %>>Conferencia</option>
+                  </select>
+                </div>
+              </div>
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label for="editEventDate<%= event.ID %>" class="form-label">Fecha</label>
+                  <input type="date" id="editEventDate<%= event.ID %>" name="eventDate" class="form-control" value="<%= new Date(event.Fecha).toISOString().split('T')[0] %>" required>
+                </div>
+                <div class="col-md-6">
+                  <label for="editEventTime<%= event.ID %>" class="form-label">Hora</label>
+                  <input type="time" id="editEventTime<%= event.ID %>" name="eventTime" class="form-control" value="<%= event.Hora %>" required>
+                </div>
+              </div>
+              <div class="row mb-3">
+                <label for="editEventDuration<%= event.ID %>" class="form-label">Duración</label>
+                <input type="number" id="editEventDuration<%= event.ID %>" name="eventDuration" placeholder="En minutos" class="form-control" value="<%= event.Duracion %>" required>
+              </div>
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label for="editEventLocation<%= event.ID %>" class="form-label">Ubicación</label>
+                  <select id="editEventLocation<%= event.ID %>" name="eventLocation" class="form-select" required>
+                    <% locations.forEach(location => { %>
+                      <option value="<%= location.Nombre %>" <%= event.facultad === location.Nombre ? 'selected' : '' %>><%= location.Nombre %></option>
+                    <% }); %>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label for="editEventExact<%= event.ID %>" class="form-label">Localización exacta</label>
+                  <input type="text" id="editEventExact<%= event.ID %>" name="eventExact" class="form-control" value="<%= event.Ubicacion %>" required>
+                </div>
+              </div>
+              <div class="row mb-3">
+                <label for="editEventCapacity<%= event.ID %>" class="form-label">Capacidad Máxima</label>
+                <input type="number" id="editEventCapacity<%= event.ID %>" name="eventCapacity" class="form-control" value="<%= event.Capacidad_Maxima %>" required>
+              </div>
+              <div class="row mb-3">
+                <label for="editEventDescription<%= event.ID %>" class="form-label">Descripción</label>
+                <textarea id="editEventDescription<%= event.ID %>" name="eventDescription" class="form-control" rows="3" required><%= event.Descripcion %></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% }); %>
 
   <%- include("footer") %>
 </body>
