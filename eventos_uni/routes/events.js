@@ -3,19 +3,34 @@ var router = express.Router();
 const pool = require('../database.js');
 
 router.get('/', function(req, res, next) {
-    
-    pool.query('SELECT * FROM eventos WHERE Organizador_ID = ?', [1],(err,eventList)=>{
-        if(err) throw err;
-        pool.query('SELECT * FROM facultades',(err,locationList)=>{
-            if(err) throw err;
-            res.render('viewEvents', { title: 'Events', events:eventList, locations:locationList });
-        });
+    idUser = 4;//Pillar de las sesiones
+    pool.query('SELECT Rol FROM usuarios WHERE ID = ?', [idUser], (err,user) =>{
+        if(user[0].Rol == "organizador"){
+            pool.query('SELECT * FROM eventos WHERE Organizador_ID = ?', [idUser],(err,eventList)=>{
+                if(err) throw err;
+                pool.query('SELECT * FROM facultades',(err,locationList)=>{
+                    if(err) throw err;
+                    res.render('viewEvents', { title: 'Events', events:eventList, locations:locationList , user:user});
+                });
+            });
+        }
+        else{
+            pool.query('SELECT * FROM eventos',(err,eventList) =>{
+                if(err) throw err;
+                pool.query('SELECT * FROM facultades',(err,locationList)=>{
+                    if(err) throw err;
+                    res.render('viewEvents', { title: 'Events', events:eventList, locations:locationList,user:user });
+                });
+            });
+        }
+
     });
+    
    
 });
 router.post('/create',function(req,res){
     const {eventTitle,eventType,eventDate,eventTime,eventLocation,eventCapacity,eventDescription,eventExact,eventDuration} = req.body;
-    idORganizer ='1'; // SACARLO DE LAS SESIONES CUANDO ESTE
+    idORganizer = 1; // SACARLO DE LAS SESIONES CUANDO ESTE
     pool.query('SELECT Rol FROM usuarios WHERE ID = ?', [idORganizer], (err,user) =>{
         if(err) throw err;
         if(user[0].Rol == "organizador"){
@@ -103,6 +118,10 @@ router.post('/edit/:id', function(req,res){
         });
     });
 
+});
+
+router.post('/join/:id', function(req,res){
+    res.redirect("/vieEvents");
 });
 
 function checkTime(events,eventTime,eventDuration){

@@ -19,8 +19,13 @@
             <p class="mb-2"><strong>Ubicación:</strong> <%= event.facultad %>:<%= event.Ubicacion %></p>
             <p class="mb-2"><strong>Capacidad:</strong> <%= event.Capacidad_Actual %> / <%= event.Capacidad_Maxima %> personas</p>
             <p class="mb-2"><strong>Tipo de Evento:</strong> <%= event.tipo %></p>
-            <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editEventModal<%= event.ID %>">Editar Evento</button>
-            <button class="btn btn-danger btn-sm"  data-bs-toggle="modal" data-bs-target="#deleteEventModal<%= event.ID%>">Eliminar Evento</button>
+            <% if(user[0].Rol == "organizador"){%>
+              <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editEventModal<%= event.ID %>">Editar Evento</button>
+              <button class="btn btn-danger btn-sm"  data-bs-toggle="modal" data-bs-target="#deleteEventModal<%= event.ID%>">Eliminar Evento</button>
+            <% }else{ %>
+              <button class="btn btn-secondary btn-sm" data-bs-target="#joinEventModal<%= event.ID %>" data-bs-toggle="modal">Inscribirse</button>
+              <button class="btn btn-danger btn-sm" data-bs-target="#leaveEventModal<%= event.ID %>" data-bs-toggle="modal">Desinscribirse</button>
+            <%}%>
           </div>
         <% }); %>
       </div>
@@ -32,7 +37,7 @@
     Añadir Evento
   </button>
 
-  
+  <!--MODAL PARA CREAR EVENTOS (SOLO DE ORGANIZADORES)-->
   <div class="modal fade" id="createEventModal" tabindex="-1" aria-labelledby="createEventModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -99,12 +104,13 @@
       </div>
     </div>
   </div>
+  <!--MODAL PARA ELIMINAR EVENTOS (SOLO DE ORGANIZADORES)-->
   <% events.forEach(event => { %>
   <div class="modal fade" id="deleteEventModal<%= event.ID%>" tabindex="-1" aria-labelledby="deleteEventModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h6 class="modal-title" id="deleteEventModalLabel">¿Estás seguro de que deseas eliminar el evento <%= event.Titulo%></h6>
+          <h6 class="modal-title" id="deleteEventModalLabel">¿Estás seguro de que deseas eliminar el evento <%= event.Titulo%> ?</h6>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-footer">
@@ -118,7 +124,7 @@
     </div>
   </div>
   <% }); %>
-
+<!--MODAL PARA EDITAR EVENTOS (SOLO DE ORGANIZADORES)-->
   <% events.forEach(event => { %>
     <div class="modal fade" id="editEventModal<%= event.ID %>" tabindex="-1" aria-labelledby="editEventModalLabel<%= event.ID %>" aria-hidden="true">
       <div class="modal-dialog">
@@ -186,6 +192,46 @@
       </div>
     </div>
   <% }); %>
+<!--MODAL PARA UNIRSE A EVENTOS (SOLO DE ASISTENTES)-->
+  <% events.forEach(event => { %>
+    <div class="modal fade" id="joinEventModal<%= event.ID%>" tabindex="-1" aria-labelledby="joinEventModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h6 class="modal-title" id="joinEventModalLabel">¿Estás seguro de que deseas unirte al evento <%= event.Titulo%> ?</h6>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <form id="joinEventForm" method="POST" action="/viewEvents/join/<%= event.ID%>">
+              <input type="hidden" id="eventId" name="eventId" value="">
+              <button type="submit" class="btn btn-primary">Unirse</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <% }); %>
+<!--MODAL PARA SALIRSE DE EVENTOS (SOLO DE ASISTENTES)-->
+  <% events.forEach(event => { %>
+    <div class="modal fade" id="leaveEventModal<%= event.ID%>" tabindex="-1" aria-labelledby="leaveEventModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h6 class="modal-title" id="leaveEventModalLabel">¿Estás seguro de que deseas abandonar el evento <%= event.Titulo%> ?</h6>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <form id="joinEventForm" method="POST" action="/viewEvents/leave/<%= event.ID%>">
+              <input type="hidden" id="eventId" name="eventId" value="">
+              <button type="submit" class="btn btn-danger">Abandonar</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <% }); %>
 
   <%- include("footer") %>
 </body>
