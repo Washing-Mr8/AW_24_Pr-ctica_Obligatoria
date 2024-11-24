@@ -51,6 +51,10 @@ input{
     /* font-family: Tahoma, Geneva, sans-serif; */
 }
 
+.roles-container{
+    margin-bottom: 2rem;
+
+}
 .btn-check:checked + .btn-accesibilidad {
     background-color: #00c9a7; /* Color de fondo cuando está seleccionado */
     color: white; /* Color del texto */

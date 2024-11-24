@@ -78,7 +78,7 @@ $(document).ready(function () {
             return;
         }
         // Verificar que la contraseña tenga al menos 6 caracteres
-        if (password.length < 6) {
+        if (password.length < 8) {
             errorPassword.text('La contraseña es demasiado corta.').removeClass('success-message').addClass('error-message');
             validPassword = false;
             return;

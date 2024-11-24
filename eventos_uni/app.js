@@ -4,25 +4,32 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
-var db = require('./database');
+const db = require('./database');
+
+const app = express();
+const port = 3000;
 
 //sesiones
 const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
 
-const sessionStore = new MySQLStore({
+const sessionStore = new MySQLStore({  
   createDatabaseTable: true
-}, db.pool);
+},db);
 
+// console.log('Conexión a la base de datos:', pool);
+
+app.use(session({
+  key:'demo_session',
+  saveUninitialized: false,
+  secret: "1234",
+  resave: false,
+  store: sessionStore
+}));
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var eventsRouter = require('./routes/events');
-
-var app = express();
-const port = 3000;
-
-
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -38,12 +45,6 @@ app.use('/', indexRouter);
 app.use('/user', usersRouter);
 app.use('/viewEvents', eventsRouter);
 
-app.use(session({
-  saveUninitialized: false,
-  secret: "1234",
-  resave: false,
-  store: sessionStore
-}));
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

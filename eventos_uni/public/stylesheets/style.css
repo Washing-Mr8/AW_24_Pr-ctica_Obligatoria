@@ -1,8 +1,8 @@
-html{
+/* html{
   height: 100%;
   display: flex;
-  flex-direction: column; 
-}
+  flex-direction: column;
+} */
 
 body {
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
