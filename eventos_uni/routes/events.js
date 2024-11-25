@@ -1,8 +1,10 @@
 var express = require('express');
 var router = express.Router();
 const pool = require('../database.js');
+const verificarSesion = require('../middleware/autenticar');
 
-router.get('/', function(req, res, next) {
+
+router.get('/',verificarSesion ,function(req, res, next) {
     idUser = 4;//Pillar de las sesiones
     pool.query('SELECT Rol FROM usuarios WHERE ID = ?', [idUser], (err,user) =>{
         if(user[0].Rol == "organizador"){

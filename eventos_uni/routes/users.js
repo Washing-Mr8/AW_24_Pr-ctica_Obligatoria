@@ -9,7 +9,7 @@ const SALT_ROUNDS = 10;
 
 /* GET users listing. */
 router.get('/', verificarSesion, function (req, res, next) {
-  pool.query('SELECT Nombre, Correo,Telefono, Facultad, Rol FROM usuarios WHERE ID = ? ', [req.session.userId], (err, user) => {
+  pool.query('SELECT Nombre, Correo,Telefono, Facultad_ID, Rol FROM usuarios WHERE ID = ? ', [req.session.userId], (err, user) => {
     if (err) {
       console.error('Error al obtener el usuario:', err);
       return res.status(500).render('error', { mensaje: 'Error al obtener los datos del usuario.' });
@@ -62,22 +62,29 @@ router.post('/register', function (req, res) {
       return res.status(400).json({ mensaje: 'El correo ya está registrado.' });
     }
 
-    // Hashear la contraseña
-    bcrypt.hash(registerPassword, SALT_ROUNDS, (err, hashedPassword) => {
+    pool.query('SELECT ID FROM facultades WHERE Nombre = ?', [facultad], (err, facultadID) => {
       if (err) {
-        console.error('Error al hashear la contraseña:', err);
-        return res.status(500).render('error', { mensaje: 'Error al registrar el usuario.' });
+        console.error('Error al acceder a las facultades:', err);
+        return res.status(500).render('error', { mensaje: 'Error al acceder a las facultades.' });
       }
 
-      // Insertar nuevo usuario
-      const newUser = [registerName, registerEmail, hashedPassword, registerPhone, facultad, role];
-      pool.query('INSERT INTO usuarios(Nombre,Correo,Password,Telefono,Facultad,Rol) VALUES (?,?,?,?,?,?)', newUser, (err) => {
+      // Hashear la contraseña
+      bcrypt.hash(registerPassword, SALT_ROUNDS, (err, hashedPassword) => {
         if (err) {
-          console.error('Error al insertar usuario:', err);
+          console.error('Error al hashear la contraseña:', err);
           return res.status(500).render('error', { mensaje: 'Error al registrar el usuario.' });
         }
 
-        res.render('login', { success: 'Usuario registrado con éxito. Por favor, inicie sesión.' });
+        // Insertar nuevo usuario
+        const newUser = [registerName, registerEmail, hashedPassword, registerPhone, facultadID, role];
+        pool.query('INSERT INTO usuarios(Nombre,Correo,Password,Telefono,Facultad_ID,Rol) VALUES (?,?,?,?,?,?)', newUser, (err) => {
+          if (err) {
+            console.error('Error al insertar usuario:', err);
+            return res.status(500).render('error', { mensaje: 'Error al registrar el usuario.' });
+          }
+
+          res.redirect('/user/login');
+        });
       });
     });
   });
