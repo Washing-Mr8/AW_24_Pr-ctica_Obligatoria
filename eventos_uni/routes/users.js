@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 const bcrypt = require('bcrypt');
 const pool = require('../database');
+const verificarSesion = require('../middleware/autenticar');
 
 // Número de rondas para el hashing de contraseñas
 const SALT_ROUNDS = 10;
@@ -22,24 +23,27 @@ router.get('/', verificarSesion, function (req, res, next) {
   });
 });
 
-function verificarSesion(req, res, next) {
-  if (req.session.userId) {
-    next(); // Usuario autenticado, continuar
-  } else {
-    res.status(401).redirect('/user/login'); // Redirigir al login si no está autenticado
-  }
-}
-
-
 
 /* GET registro page. */
 router.get('/register', function (req, res, next) {
   pool.query('SELECT * from Facultades', (err, result) => {
-    if (err){
+    if (err) {
       console.error('Error al obtener facultades:', err);
       return res.status(500).render('error', { mensaje: 'Error al cargar las facultades.' });
     }
-    res.render('registro', { title: 'Registro', facultades: result });
+
+    let isLogged = false;
+    let isAdmin = false;
+
+    if (req.session.role) {
+      isLogged = true;
+      if (req.session.role === 'organizador') {
+        isAdmin = true;
+      }
+      return res.redirect('/user');
+    }
+
+    return res.render('registro', { title: 'Registro', facultades: result, isLogged: isLogged, isAdmin: isAdmin });
   });
 });
 
@@ -68,12 +72,12 @@ router.post('/register', function (req, res) {
       // Insertar nuevo usuario
       const newUser = [registerName, registerEmail, hashedPassword, registerPhone, facultad, role];
       pool.query('INSERT INTO usuarios(Nombre,Correo,Password,Telefono,Facultad,Rol) VALUES (?,?,?,?,?,?)', newUser, (err) => {
-        if (err){
+        if (err) {
           console.error('Error al insertar usuario:', err);
           return res.status(500).render('error', { mensaje: 'Error al registrar el usuario.' });
         }
 
-        res.render('login',{success:'Usuario registrado con éxito. Por favor, inicie sesión.'});
+        res.render('login', { success: 'Usuario registrado con éxito. Por favor, inicie sesión.' });
       });
     });
   });
@@ -82,7 +86,19 @@ router.post('/register', function (req, res) {
 
 /* GET Login page. */
 router.get('/login', function (req, res, next) {
-  res.render('login', { title: 'Login' });
+
+  let isLogged = false;
+  let isAdmin = false;
+
+  if (req.session.role) {
+    isLogged = true;
+    if (req.session.role === 'organizador') {
+      isAdmin = true;
+    }
+    return res.redirect('/user');
+  }
+
+  return res.render('login', { title: 'Login', isLogged: isLogged, isAdmin: isAdmin });
 });
 
 /* POST para iniciar sesion*/
@@ -114,14 +130,29 @@ router.post('/login', function (req, res) {
         return res.status(401).json({ mensaje: 'La contraseña es incorrecta o no coincide' });
       }
 
+
       // Guardar el usuario en la sesión
       req.session.userId = usuario.ID;
+      req.session.correo = usuario.Correo;
+      req.session.role = usuario.Rol
+
       res.redirect('/user');
       // res.json({ mensaje: 'Inicio de sesión exitoso.', usuario: { id: usuario.ID, nombre: usuario.Nombre, rol: usuario.Rol } });
     });
   });
 });
 
+
+router.get('/logout', function (req, res) {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error("Error al cerrar sesión:", err);
+      return res.status(500).render("error", { mensaje: "Error al cerrar sesión" });
+    }
+
+    return res.redirect('/user/login');
+  });
+});
 
 
 module.exports = router;
