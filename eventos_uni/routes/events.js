@@ -5,7 +5,7 @@ const verificarSesion = require('../middleware/autenticar');
 
 
 router.get('/',verificarSesion ,function(req, res, next) {
-    idUser = 4;//Pillar de las sesiones
+    idUser = req.session.userId;
     pool.query('SELECT Rol FROM usuarios WHERE ID = ?', [idUser], (err,user) =>{
         if(user[0].Rol == "organizador"){
             pool.query('SELECT * FROM eventos WHERE Organizador_ID = ?', [idUser],(err,eventList)=>{
@@ -32,7 +32,7 @@ router.get('/',verificarSesion ,function(req, res, next) {
 });
 router.post('/create',function(req,res){
     const {eventTitle,eventType,eventDate,eventTime,eventLocation,eventCapacity,eventDescription,eventExact,eventDuration} = req.body;
-    idORganizer = 1; // SACARLO DE LAS SESIONES CUANDO ESTE
+    idORganizer = req.session.userId; // SACARLO DE LAS SESIONES CUANDO ESTE
     pool.query('SELECT Rol FROM usuarios WHERE ID = ?', [idORganizer], (err,user) =>{
         if(err) throw err;
         if(user[0].Rol == "organizador"){

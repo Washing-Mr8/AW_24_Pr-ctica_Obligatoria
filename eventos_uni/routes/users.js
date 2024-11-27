@@ -76,7 +76,7 @@ router.post('/register', function (req, res) {
         }
 
         // Insertar nuevo usuario
-        const newUser = [registerName, registerEmail, hashedPassword, registerPhone, facultadID, role];
+        const newUser = [registerName, registerEmail, hashedPassword, registerPhone, facultadID[0].ID, role];
         pool.query('INSERT INTO usuarios(Nombre,Correo,Password,Telefono,Facultad_ID,Rol) VALUES (?,?,?,?,?,?)', newUser, (err) => {
           if (err) {
             console.error('Error al insertar usuario:', err);
