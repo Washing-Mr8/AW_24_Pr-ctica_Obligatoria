@@ -23,6 +23,13 @@
               <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editEventModal<%= event.ID %>">Editar Evento</button>
               <button class="btn btn-danger btn-sm"  data-bs-toggle="modal" data-bs-target="#deleteEventModal<%= event.ID%>">Eliminar Evento</button>
             <% }else{ %>
+              <p class="mb-2"><strong>Esta de la inscripción:</strong> 
+                <% if(stateList.has(event.ID)){%>
+                  <%= stateList.get(event.ID) %>
+                <%}else{%>
+                  No inscrito
+                  <%}%>
+              </p>
               <button class="btn btn-secondary btn-sm" data-bs-target="#joinEventModal<%= event.ID %>" data-bs-toggle="modal">Inscribirse</button>
               <button class="btn btn-danger btn-sm" data-bs-target="#leaveEventModal<%= event.ID %>" data-bs-toggle="modal">Desinscribirse</button>
             <%}%>
@@ -32,10 +39,11 @@
     <% } else { %>
       <p class="text-center text-muted">No hay eventos disponibles.</p>
     <% } %>
-   
+    <% if(user[0].Rol == "organizador"){%>
    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createEventModal">
     Añadir Evento
   </button>
+  <% }%>
 
   <!--MODAL PARA CREAR EVENTOS (SOLO DE ORGANIZADORES)-->
   <div class="modal fade" id="createEventModal" tabindex="-1" aria-labelledby="createEventModalLabel" aria-hidden="true">
@@ -47,7 +55,7 @@
         </div>
         <div class="modal-body">
           
-          <form action="/viewEvents/create" method="POST" id="createEventForm" class="mb-4">
+          <form  method="POST" action="/viewEvents/create"  id="createEventForm" class="mb-4">
             <div class="row mb-3">
               <div class="col-md-6">
                 <label for="title" class="form-label">Título</label>
