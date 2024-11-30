@@ -39,7 +39,7 @@ router.get('/',verificarSesion ,function(req, res, next) {
 });
 router.post('/create',function(req,res){
     const {eventTitle,eventType,eventDate,eventTime,eventLocation,eventCapacity,eventDescription,eventExact,eventDuration} = req.body;
-    idORganizer = req.session.userId; // SACARLO DE LAS SESIONES CUANDO ESTE
+    idORganizer = req.session.userId;
    
     pool.query('SELECT id FROM eventos WHERE Titulo = ?',[eventTitle], (err,check)=>{
         if(err) throw err;
@@ -80,8 +80,10 @@ router.post('/delete/:id', function(req,res){
                 con.release();
                 throw error;
             }  
-            mensaje = "El evento con id " + req.params.id + " ha sido cancelado";
-            sentNotification(0,"Un evento al que estabas inscrito ha sido eliminado",users,con);
+            if(users.length !== 0){
+                mensaje = "El evento con id " + req.params.id + " ha sido cancelado";
+                sentNotification(0,"Un evento al que estabas inscrito ha sido eliminado",users,con);
+            }
             con.query('DELETE FROM inscripciones WHERE Evento_ID = ?', [req.params.id], (err)=>{
                 if(err){
                     con.release();

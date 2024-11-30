@@ -7,7 +7,21 @@ const verificarSesion = require('../middleware/autenticar');
 // Número de rondas para el hashing de contraseñas
 const SALT_ROUNDS = 10;
 
-
+router.post('/ban',function(req,res){
+  pool.getConnection(function(error,con){
+    if(error){
+        con.release();
+        throw error;
+    }
+   con.query('INSERT INTO black_list VALUES(?)',[req.ip],(err)=>{
+    if(err){
+      con.release();
+      throw err;
+    }
+    return res.json({ success: true, message: 'Usuario baneado exitosamente' });
+   });
+  });
+});
 
 
 /* GET registro page. */
