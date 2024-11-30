@@ -5,7 +5,6 @@
 } */
 
 body {
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
 
 .main-container{
@@ -14,9 +13,7 @@ body {
 
 }
 
-.navbar{
-  padding: 1rem;  
-}
+
 
 .nav_logo{
   width: 45px;;
@@ -82,5 +79,26 @@ a {
   border-color: #00c9a7;
 }
 
+.modal-default{
+  background-color: #845ec2;
+  color: white;
+}
+
+.button-container{
+  display: flex;
+  gap: 1rem;
+}
+
+.fuente-normal {
+  font-size: 1rem; 
+}
+
+.fuente-grande {
+  font-size: 1.25rem;
+}
+
+.fuente-muy-grande {
+  font-size: 1.5rem; 
+}
 
 

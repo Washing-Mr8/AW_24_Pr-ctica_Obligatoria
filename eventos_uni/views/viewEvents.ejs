@@ -3,8 +3,11 @@
 <head>
   <%- include("head")%>
 </head>
-<body class="default" data-bs-theme="dark">
+<body class="<%= theme %> <%= fontSize %>" data-bs-theme="<%= theme === 'default' ? 'dark' : theme %>"  data-theme="<%= theme %>" data-font-size="<%= fontSize %>">
   <%- include("navbar") %>
+
+  <%- include("accesibilidad") %>
+
   <div class="container mt-5">
     <h1 class="text-center mb-4">Lista de Eventos</h1>
 
@@ -40,7 +43,7 @@
       <p class="text-center text-muted">No hay eventos disponibles.</p>
     <% } %>
     <% if(user[0].Rol == "organizador"){%>
-   <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createEventModal">
+   <button type="button" class="btn btn-accesibilidad" data-bs-toggle="modal" data-bs-target="#createEventModal">
     Añadir Evento
   </button>
   <% }%>
@@ -48,7 +51,7 @@
   <!--MODAL PARA CREAR EVENTOS (SOLO DE ORGANIZADORES)-->
   <div class="modal fade" id="createEventModal" tabindex="-1" aria-labelledby="createEventModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-      <div class="modal-content">
+      <div class="modal-content modal-default">
         <div class="modal-header">
           <h5 class="modal-title" id="createEventModalLabel">Crear Nuevo Evento</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -121,7 +124,7 @@
               <textarea id="eventDescription" name="eventDescription" class="form-control" rows="3" required></textarea>
             </div>
 
-            <button type="submit" class="btn btn-primary">Añadir Evento</button>
+            <button type="submit" class="btn btn-accesibilidad">Añadir Evento</button>
             <div id="createAlert"></div>
           </form>
         </div>
@@ -209,7 +212,7 @@
                 <label for="editEventDescription<%= event.ID %>" class="form-label">Descripción</label>
                 <textarea id="editEventDescription<%= event.ID %>" name="eventDescription" class="form-control" rows="3" required><%= event.Descripcion %></textarea>
               </div>
-              <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+              <button type="submit" class="btn btn-accesibilidad">Guardar Cambios</button>
             </form>
           </div>
         </div>
@@ -229,7 +232,7 @@
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
             <form id="joinEventForm" method="POST" action="/viewEvents/join/<%= event.ID%>">
               <input type="hidden" id="eventId" name="eventId" value="">
-              <button type="submit" class="btn btn-primary">Unirse</button>
+              <button type="submit" class="btn btn-accesibilidad">Unirse</button>
             </form>
           </div>
         </div>

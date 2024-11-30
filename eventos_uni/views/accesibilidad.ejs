@@ -1,0 +1,38 @@
+ <!-- MODAL PARA EL MENU DE ACCESIBLIDAD -->
+ <div class="modal fade modal-lg" id="menuAccesibilidad" data-bs-backdrop="static" data-bs-keyboard="false"
+ tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+ <div class="modal-dialog">
+   <div class="modal-content">
+     <div class="modal-header">
+       <h3 class="modal-title fs-3" id="staticBackdropLabel">Menú de Accesibilidad</h3>
+       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+     </div>
+     <div class="modal-body">
+
+       <div class="fuente">
+         <h4 class="fs-4 text-center">Tamaño de la fuente</h4>
+         <div class="d-flex justify-content-center gap-5">
+           <button class="btn btn-accesibilidad active btn-sm " id="f-normal"> Normal </button>
+           <button class="btn btn-accesibilidad outline" id="f-grande"> Grande </button>
+           <button class="btn btn-accesibilidad outline btn-lg " id="f-muygrande"> Muy Grande </button>
+         </div>
+       </div>
+       <div class="colores mt-4">
+         <h4 class="fs-4 text-center">Esquema de colores</h4>
+         <div class="d-flex justify-content-center gap-5">
+           <button class="btn btn-outline-light " id="b-claro"> <i class="fa-solid fa-sun"></i> Claro </button>
+           <button class="btn btn-accesibilidad" id="b-default"><i class="fa-solid fa-circle-half-stroke"></i>
+             Por defecto </button>
+           <button class="btn btn-outline-dark " id="b-oscuro"><i class="fa-solid fa-moon"></i> Oscuro </button>
+         </div>
+       </div>
+
+
+     </div>
+     <div class="modal-footer d-flex justify-content-between">
+       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+       <button type="button" class="btn btn-outline-light btn-accesibilidad" id="guardar-config" data-bs-dismiss="modal">Guardar</button>
+     </div>
+   </div>
+ </div>
+</div>

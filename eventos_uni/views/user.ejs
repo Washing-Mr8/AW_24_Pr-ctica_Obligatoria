@@ -3,13 +3,16 @@
 
 <head>
     <%- include("head") %>
+    <link rel='stylesheet' href='/stylesheets/calendar.css' type="text/css" />
 </head>
 
-<body class="default" data-bs-theme="dark">
+<body class="<%= theme %> <%= fontSize %>" data-bs-theme="<%= theme === 'default' ? 'dark' : theme %>"  data-theme="<%= theme %>" data-font-size="<%= fontSize %>">
+
+<!-- <body class="default" data-bs-theme="dark"> -->
     <header>
         <%- include("navbar") %>
-        <link rel='stylesheet' href='/stylesheets/calendar.css' type="text/css" />
     </header>
+    <%- include("accesibilidad") %>
 
     <div class="main-container">
         <h1>

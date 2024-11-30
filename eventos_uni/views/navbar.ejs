@@ -8,7 +8,7 @@
                 <!-- LOGOTIPO -->
                 <a class="navbar-brand" href="/user">
                     <img src="/images/AW_logo_white.svg" alt="Logo de la página" class="nav_logo">
-                    <span class="logoText">OrgaNice</span>
+                    <span class="logoText text-body-emphasis">OrgaNice</span>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                     data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
@@ -39,36 +39,40 @@
                         </li>
                     </ul>
 
+                    <div class="button-container">
+                        <% if (!isLogged) {%>
+                            <a href="/user/login">
+                                <button class="index btn btn-accesibilidad ">
+                                    <i class="fa-solid fa-right-to-bracket"></i> Iniciar sesión</button>
+                            </a>
+            
+            
+                            <a href="/user/register">
+                                <button class="index btn btn-accesibilidad ">
+                                    <i class="fa-regular fa-clipboard"></i> Registro </button>
+                            </a>
+        
+                        <%} else{ %>
+        
+                             <!-- Boton que activa el menu de Accesibilidad -->
+                        <div class="navbar-nav">
+                            <button class="index btn btn-accesibilidad " data-bs-toggle="modal"
+                                data-bs-target="#menuAccesibilidad"> <i class="fa-solid fa-universal-access"></i>
+                                Accesibilidad</button>
+                        </div>
+        
+                        <a href="/user/logout">
+                            <button class="index btn btn-danger ">
+                                <i class="fa-solid fa-right-to-bracket"></i> Cerrar sesión </button>
+                        </a>
+        
+                        <% } %>
+    
+                    </div>
+
 
                 </div>
-
-                <% if (!isLogged) {%>
-                    <a href="/user/login">
-                        <button class="index btn btn-accesibilidad outline ">
-                            <i class="fa-solid fa-right-to-bracket"></i> Iniciar sesión</button>
-                    </a>
-    
-    
-                    <a href="/user/register">
-                        <button class="index btn btn-accesibilidad outline ">
-                            <i class="fa-regular fa-clipboard"></i> Registro </button>
-                    </a>
-
-                <%} else{ %>
-
-                     <!-- Boton que activa el menu de Accesibilidad -->
-                <div class="navbar-nav">
-                    <button class="index btn btn-accesibilidad outline " data-bs-toggle="modal"
-                        data-bs-target="#menuAccesibilidad"> <i class="fa-solid fa-universal-access"></i>
-                        Accesibilidad</button>
-                </div>
-
-                <a href="/user/logout">
-                    <button class="index btn btn-danger ">
-                        <i class="fa-solid fa-right-to-bracket"></i> Cerrar sesión </button>
-                </a>
-
-                <% } %>
+            
             </div>
         </nav>
 
