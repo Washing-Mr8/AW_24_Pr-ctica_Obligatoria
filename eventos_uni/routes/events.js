@@ -76,26 +76,24 @@ router.post('/delete/:id', function(req,res){
             throw error;
         }
         con.query('SELECT Usuario_ID FROM inscripciones WHERE Evento_ID = ?', [req.params.id], (err,users)=>{
-            if(error){
+            if(err){
                 con.release();
                 throw error;
             }  
-            for (let index = 0; index < users.length; index++) {
-                mensaje = "El evento con id " + req.params.id + " ha sido cancelado";
-                con.query('INSERT INTO notificaciones (idUsuario,mensaje) VALUES (?,?)', [users[index].ID, mensaje], (err)=>{
-                    con.query('DELETE FROM inscripciones WHERE Evento_ID = ?', [req.params.id], (err)=>{
-                        if(error){
-                            con.release();
-                            throw error;
-                        }
-                        pool.query('DELETE FROM eventos WHERE id = ?', [req.params.id], (err) => {
-                            if(err) throw err;
-                            con.release();
-                            res.redirect("/viewEvents");
-                        });
-                    });
+            mensaje = "El evento con id " + req.params.id + " ha sido cancelado";
+            sentNotification(0,"Un evento al que estabas inscrito ha sido eliminado",users,con);
+            con.query('DELETE FROM inscripciones WHERE Evento_ID = ?', [req.params.id], (err)=>{
+                if(err){
+                    con.release();
+                    throw error;
+                }
+                pool.query('DELETE FROM eventos WHERE id = ?', [req.params.id], (err) => {
+                    if(err) throw err;
+                    con.release();
+                    res.redirect("/viewEvents");
                 });
-            }
+            });
+            
         });
     });
 });
@@ -113,43 +111,63 @@ router.post('/edit/:id', function(req,res){
         eventDescription,
     
     } = req.body
-    pool.query('SELECT * FROM eventos WHERE id = ?', [eventId], (err,bdEvent) =>{
-        if(err) throw err;
-        pool.query('SELECT ID FROM facultades WHERE Nombre = ?', [eventLocation], (err,locationID) =>{
-            if(err) throw err;
-            if(bdEvent[0].Titulo !== eventTitle)
-                bdEvent[0].Titulo = eventTitle;
-            if(bdEvent[0].tipo !== eventType)
-                bdEvent[0].tipo = eventType;
-            if(bdEvent[0].Fecha !== eventDate)
-                bdEvent[0].Fecha = eventDate;
-            if(bdEvent[0].Hora !== eventTime)
-                bdEvent[0].Hora = eventTime;
-            if(bdEvent[0].Duracion !== eventDuration)
-                bdEvent[0].Duracion = eventDuration;
-            if(bdEvent[0].facultad !== eventLocation)
-                bdEvent[0].facultad = eventLocation;
-            if(bdEvent[0].Ubicacion !== eventExact)
-                bdEvent[0].Ubicacion = eventExact;
-            if(bdEvent[0].Capacidad_Maxima !== eventCapacity)
-                bdEvent[0].Capacidad_Maxima = eventCapacity;
-            if(bdEvent[0].Descripcion !== eventDescription)
-                bdEvent[0].Descripcion = eventDescription;
-            if(bdEvent[0].IDfacultad !== locationID[0].ID)
-                bdEvent[0].IDfacultad = locationID[0].ID;
-
-            pool.query('SELECT Hora, Duracion FROM eventos WHERE Fecha = ? AND IDfacultad = ? AND Ubicacion = ?', [bdEvent[0].Fecha, bdEvent[0].IFfacultad, bdEvent[0].Ubicacion], (err,repeated) =>{
-                canUpdate = checkTime(repeated,bdEvent[0].Hora,bdEvent[0].Duracion);
-                if(canUpdate){
-                   pool.query('UPDATE Eventos SET Titulo = ?, tipo = ?, Fecha = ?, Hora = ?, Duracion = ?, facultad = ?, Ubicacion = ?, Capacidad_Maxima = ?, Descripcion = ?, IDfacultad = ? WHERE ID = ? ',
-                    [bdEvent[0].Titulo,bdEvent[0].tipo,bdEvent[0].Fecha,bdEvent[0].Hora,bdEvent[0].Duracion,bdEvent[0].facultad,bdEvent[0].Ubicacion,bdEvent[0].Capacidad_Maxima,bdEvent[0].Descripcion,bdEvent[0].IDfacultad,eventId],
-                    (err) =>{
-                        res.redirect("/viewEvents");
-                    }
-                   );
+    pool.getConnection(function(error,con){
+        if(error){
+            con.release();
+            throw error;
+        }
+        con.query('SELECT * FROM eventos WHERE id = ?', [eventId], (err,bdEvent) =>{
+            if(err){
+                con.release();
+                throw err;
+            }
+            con.query('SELECT ID FROM facultades WHERE Nombre = ?', [eventLocation], (err,locationID) =>{
+                if(err){
+                    con.release();
+                    throw err;
                 }
+                if(bdEvent[0].Titulo !== eventTitle)
+                    bdEvent[0].Titulo = eventTitle;
+                if(bdEvent[0].tipo !== eventType)
+                    bdEvent[0].tipo = eventType;
+                if(bdEvent[0].Fecha !== eventDate)
+                    bdEvent[0].Fecha = eventDate;
+                if(bdEvent[0].Hora !== eventTime)
+                    bdEvent[0].Hora = eventTime;
+                if(bdEvent[0].Duracion !== eventDuration)
+                    bdEvent[0].Duracion = eventDuration;
+                if(bdEvent[0].facultad !== eventLocation)
+                    bdEvent[0].facultad = eventLocation;
+                if(bdEvent[0].Ubicacion !== eventExact)
+                    bdEvent[0].Ubicacion = eventExact;
+                if(bdEvent[0].Capacidad_Maxima !== eventCapacity){
+                    bdEvent[0].Capacidad_Maxima = eventCapacity;
+                }
+                if(bdEvent[0].Descripcion !== eventDescription)
+                    bdEvent[0].Descripcion = eventDescription;
+                if(bdEvent[0].IDfacultad !== locationID[0].ID)
+                    bdEvent[0].IDfacultad = locationID[0].ID;
+    
+                if(bdEvent[0].Capacidad_Maxima < bdEvent[0].Capacidad_Actual){
+                    addToQueueAndNotify(eventId,bdEvent[0].Capacidad_Actual - bdEvent[0].Capacidad_Maxima,con,bdEvent[0].Capacidad_Maxima);
+                }
+                con.query('SELECT Hora, Duracion FROM eventos WHERE Fecha = ? AND IDfacultad = ? AND Ubicacion = ?', [bdEvent[0].Fecha, bdEvent[0].IFfacultad, bdEvent[0].Ubicacion], (err,repeated) =>{
+                    if(err){
+                        con.release();
+                        throw err;
+                    }
+                    canUpdate = checkTime(repeated,bdEvent[0].Hora,bdEvent[0].Duracion);
+                    if(canUpdate){
+                       pool.query('UPDATE Eventos SET Titulo = ?, tipo = ?, Fecha = ?, Hora = ?, Duracion = ?, facultad = ?, Ubicacion = ?, Capacidad_Maxima = ?, Descripcion = ?, IDfacultad = ? WHERE ID = ? ',
+                        [bdEvent[0].Titulo,bdEvent[0].tipo,bdEvent[0].Fecha,bdEvent[0].Hora,bdEvent[0].Duracion,bdEvent[0].facultad,bdEvent[0].Ubicacion,bdEvent[0].Capacidad_Maxima,bdEvent[0].Descripcion,bdEvent[0].IDfacultad,eventId],
+                        (err) =>{
+                            res.redirect("/viewEvents");
+                        }
+                       );
+                    }
+                });
+    
             });
-
         });
     });
 
@@ -269,6 +287,7 @@ router.post('/leave/:id', function(req,res){
                                             con.release();
                                             throw err;
                                         }
+                                        sentNotification(0,"Se ha actualizado tu puesto en la lista de espera",waitList,con);
                                         con.release();
                                         res.redirect("/viewEvents");
                                     });
@@ -313,5 +332,39 @@ function checkTime(events,eventTime,eventDuration){
         });
     }
     return canInsert;
+}
+
+function sentNotification(index,message,users,con){
+    con.query('INSERT INTO notificaciones (idUsuario,mensaje) VALUES (?,?)', [users[index].Usuario_ID, message], (err)=>{
+        if(err){
+            con.release();
+            throw err;
+        }
+        if(users.length === index + 1){
+            return;
+        }
+        else{
+            sentNotification(index+1,message,users,con);
+        }
+        return;
+    });
+}
+
+function addToQueueAndNotify(eventId, amount,con,newCapacity){
+    con.query('SELECT Usuario_ID FROM inscripciones WHERE Evento_ID = ? ORDER BY Fecha_Inscripcion LIMIT ?',[eventId,amount],(err,users)=>{
+        if(err){
+            con.release();
+            throw err;
+        }
+        con.query('UPDATE eventos SET Capacidad_Actual = ? WHERE ID = ?',[newCapacity,eventId],(err,users)=>{
+            if(err){
+                con.release();
+                throw err;
+            }
+            
+            sentNotification(0,"Un evento al que estabas inscrito ha sido modificado y has sido movido a la lista de espera",users,con);
+            return;
+        });
+    });
 }
 module.exports = router;
