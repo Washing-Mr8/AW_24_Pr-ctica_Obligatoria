@@ -70,9 +70,33 @@ router.post('/create',function(req,res){
 });
 
 router.post('/delete/:id', function(req,res){
-    pool.query('DELETE FROM eventos WHERE id = ?', [req.params.id], (err) => {
-        if(err) throw err;
-        res.redirect("/viewEvents");
+    pool.getConnection(function(error,con){
+        if(error){
+            con.release();
+            throw error;
+        }
+        con.query('SELECT Usuario_ID FROM inscripciones WHERE Evento_ID = ?', [req.params.id], (err,users)=>{
+            if(error){
+                con.release();
+                throw error;
+            }  
+            for (let index = 0; index < users.length; index++) {
+                mensaje = "El evento con id " + req.params.id + " ha sido cancelado";
+                con.query('INSERT INTO notificaciones (idUsuario,mensaje) VALUES (?,?)', [users[index].ID, mensaje], (err)=>{
+                    con.query('DELETE FROM inscripciones WHERE Evento_ID = ?', [req.params.id], (err)=>{
+                        if(error){
+                            con.release();
+                            throw error;
+                        }
+                        pool.query('DELETE FROM eventos WHERE id = ?', [req.params.id], (err) => {
+                            if(err) throw err;
+                            con.release();
+                            res.redirect("/viewEvents");
+                        });
+                    });
+                });
+            }
+        });
     });
 });
 router.post('/edit/:id', function(req,res){
@@ -174,6 +198,7 @@ router.post('/join/:id', function(req,res){
                                     con.release();
                                     throw err;
                                 }
+                                con.release();
                                 res.redirect("/viewEvents");
                             });
                         });
@@ -184,6 +209,7 @@ router.post('/join/:id', function(req,res){
                                 con.release();
                                 throw err;
                             }
+                            con.release();
                             res.redirect("/viewEvents");
                         });
                     }
@@ -233,6 +259,7 @@ router.post('/leave/:id', function(req,res){
                                             con.release();
                                             throw err;
                                         }
+                                        con.release();
                                         res.redirect("/viewEvents");
                                     });
                                 }
@@ -242,6 +269,7 @@ router.post('/leave/:id', function(req,res){
                                             con.release();
                                             throw err;
                                         }
+                                        con.release();
                                         res.redirect("/viewEvents");
                                     });
                                 }
@@ -259,6 +287,7 @@ router.post('/leave/:id', function(req,res){
                                     con.release();
                                     throw err;
                                 }
+                                con.release();
                                 res.redirect("/viewEvents");
                             });
                         });

@@ -7,21 +7,7 @@ const verificarSesion = require('../middleware/autenticar');
 // Número de rondas para el hashing de contraseñas
 const SALT_ROUNDS = 10;
 
-/* GET users listing. */
-router.get('/', verificarSesion, function (req, res, next) {
-  pool.query('SELECT Nombre, Correo,Telefono, Facultad_ID, Rol FROM usuarios WHERE ID = ? ', [req.session.userId], (err, user) => {
-    if (err) {
-      console.error('Error al obtener el usuario:', err);
-      return res.status(500).render('error', { mensaje: 'Error al obtener los datos del usuario.' });
-    }
 
-    if (user.length === 0) {
-      return res.status(404).render('error', { mensaje: 'Usuario no encontrado.' });
-    }
-
-    res.render('user', { title: user[0].Nombre, usuario: user[0] });
-  });
-});
 
 
 /* GET registro page. */
@@ -158,6 +144,48 @@ router.get('/logout', function (req, res) {
     }
 
     return res.redirect('/user/login');
+  });
+});
+
+
+/* GET users listing. */
+router.get('/:year?/:month?', verificarSesion, function (req, res, next) {
+  pool.getConnection(function(error,con){
+    if(error){
+        con.release();
+        throw error;
+    }
+    con.query('SELECT Nombre, Correo,Telefono, Facultad_ID, Rol FROM usuarios WHERE ID = ? ', [req.session.userId], (err, user) => {
+      if (err) {
+        console.error('Error al obtener el usuario:', err);
+        con.release();
+        return res.status(500).render('error', { mensaje: 'Error al obtener los datos del usuario.' });
+      }
+  
+      if (user.length === 0) {
+        return res.status(404).render('error', { mensaje: 'Usuario no encontrado.' });
+      }
+      
+      con.query('SELECT * FROM eventos',(err,eventList)=>{
+        date = new Date();
+        const year = parseInt(req.params.year) || new Date().getFullYear();
+        var month = new Date().getMonth();
+        if(req.params.month !== undefined)
+          month = parseInt(req.params.month)
+
+        pool.query('SELECT * FROM inscripciones WHERE Usuario_ID = ?',[req.session.userId],(err,stateList)=>{
+          if(err) throw err;
+          var map = new Map();
+          stateList.forEach(element => {
+              map.set(element.Evento_ID,element.Estado_Inscripcion);
+          });
+          con.release();
+          res.render('user', { title: user[0].Nombre, usuario: user[0],events:eventList,currentYear:year,currentMonth:month,stateList:map });
+      });
+        
+      });
+    });
+  
   });
 });
 
