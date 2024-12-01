@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 const pool = require('../database.js');
 const verificarSesion = require('../middleware/autenticar');
+const { event } = require('jquery');
 
 
 router.get('/',verificarSesion ,function(req, res, next) {
@@ -40,31 +41,71 @@ router.get('/',verificarSesion ,function(req, res, next) {
 router.post('/create',function(req,res){
     const {eventTitle,eventType,eventDate,eventTime,eventLocation,eventCapacity,eventDescription,eventExact,eventDuration} = req.body;
     idORganizer = req.session.userId;
-   
-    pool.query('SELECT id FROM eventos WHERE Titulo = ?',[eventTitle], (err,check)=>{
-        if(err) throw err;
-        if(check.length == 0){
-            pool.query('SELECT ID FROM facultades WHERE Nombre = ?', [eventLocation], (err,locationID) =>{
-                pool.query('SELECT Hora, Duracion FROM eventos WHERE Fecha = ? AND IDfacultad = ? AND Ubicacion = ?', [eventDate, locationID[0].ID, eventExact], (err,repeated) =>{
-                    canInsert = checkTime(repeated,eventTime,eventDuration);
-                    if(canInsert){
-                        pool.query('INSERT INTO eventos (Titulo,Descripcion,Fecha,Hora,Ubicacion,Capacidad_Maxima,tipo,Duracion,Capacidad_Actual,IDfacultad,Organizador_ID,facultad) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)'
-                            ,[eventTitle,eventDescription,eventDate,eventTime,eventExact,eventCapacity,eventType,eventDuration,0,locationID[0].ID,idORganizer,eventLocation], (err) =>{
-                            if(err) {
-                                throw err;
-                            }
-                            res.redirect('/viewEvents');
-                        });
+    console.log(req.body);
+    pool.getConnection(function(error,con){
+        if(error){
+            con.release();
+            return res.status(500).send({ success: false, message: 'Error al crear el evento.' });
+        }
+        con.query('SELECT id FROM eventos WHERE Titulo = ?',[eventTitle], (err,check)=>{
+            if(err){
+                con.release();
+                return res.status(500).send({ success: false, message: 'Error al crear el evento.' });
+            }
+            if(check.length == 0){
+                con.query('SELECT ID FROM facultades WHERE Nombre = ?', [eventLocation], (err,locationID) =>{
+                    if(err){
+                        con.release();
+                        return res.status(500).send({ success: false, message: 'Error al crear el evento.' });
                     }
-                    else{
-                        //YA HAY A ESA HORA
-                    }
+                    con.query('SELECT Hora, Duracion FROM eventos WHERE Fecha = ? AND IDfacultad = ? AND Ubicacion = ?', [eventDate, locationID[0].ID, eventExact], (err,repeated) =>{
+                        if(err){
+                            con.release();
+                            return res.status(500).send({ success: false, message: 'Error al crear el evento.' });
+                        }
+                        canInsert = checkTime(repeated,eventTime,eventDuration);
+                        if(canInsert){
+                            con.query('INSERT INTO eventos (Titulo,Descripcion,Fecha,Hora,Ubicacion,Capacidad_Maxima,tipo,Duracion,Capacidad_Actual,IDfacultad,Organizador_ID,facultad) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)'
+                                ,[eventTitle,eventDescription,eventDate,eventTime,eventExact,eventCapacity,eventType,eventDuration,0,locationID[0].ID,idORganizer,eventLocation], (err,result) =>{
+                                    if(err){
+                                        con.release();
+                                        return res.status(500).send({ success: false, message: 'Error al crear el evento.' });
+                                    }
+                                const newEvent = {
+                                    ID: result.insertId,
+                                    Titulo: eventTitle,
+                                    Descripcion: eventDescription,
+                                    Fecha: eventDate,
+                                    Hora: eventTime,
+                                    Duracion: eventDuration,
+                                    Facultad: eventLocation,
+                                    Ubicacion: eventExact,
+                                    Capacidad_Actual: 0,
+                                    Capacidad_Maxima: eventCapacity,
+                                    Tipo: eventType
+                                  };
+                                  con.query('SELECT * FROM facultades',(err,locationList)=>{
+                                    if(err){
+                                        con.release();
+                                        return res.status(500).send({ success: false, message: 'Error al crear el evento.' });
+                                    }
+                                    con.release();
+                                    return res.json({ success: true, event: newEvent, locations:locationList});
+                                });
+                            });
+                        }
+                        else{
+                            con.release();
+                            return res.json({ success: false, message: "Ya hay un evento ese dia a esa hora en esa ubicación" });
+                        }
+                    });
                 });
-            });
-        }
-        else{
-            //NOMBRE REPETIDO
-        }
+            }
+            else{
+                con.release();
+                return res.json({ success: false, message: "Ya hay un evento con ese titulo" });
+            }
+        });
     });
    
 });
@@ -73,12 +114,12 @@ router.post('/delete/:id', function(req,res){
     pool.getConnection(function(error,con){
         if(error){
             con.release();
-            throw error;
+            return res.status(500).send({ success: false, message: 'Error al eliminar el evento.' });
         }
         con.query('SELECT Usuario_ID FROM inscripciones WHERE Evento_ID = ?', [req.params.id], (err,users)=>{
             if(err){
                 con.release();
-                throw error;
+                return res.status(500).send({ success: false, message: 'Error al eliminar el evento.' });
             }  
             if(users.length !== 0){
                 mensaje = "El evento con id " + req.params.id + " ha sido cancelado";
@@ -87,12 +128,12 @@ router.post('/delete/:id', function(req,res){
             con.query('DELETE FROM inscripciones WHERE Evento_ID = ?', [req.params.id], (err)=>{
                 if(err){
                     con.release();
-                    throw error;
+                    return res.status(500).send({ success: false, message: 'Error al eliminar el evento.' });
                 }
                 pool.query('DELETE FROM eventos WHERE id = ?', [req.params.id], (err) => {
                     if(err) throw err;
                     con.release();
-                    res.redirect("/viewEvents");
+                    return res.json({ success: true, message: 'Evento eliminado correctamente.' });
                 });
             });
             

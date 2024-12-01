@@ -8,13 +8,14 @@
 
   <%- include("accesibilidad") %>
 
-  <div class="container mt-5">
+  <div class="container mt-5" >
+    <div id="createdAlert"></div>
     <h1 class="text-center mb-4">Lista de Eventos</h1>
 
-    <% if (events && events.length > 0) { %>
-      <div class="list-group">
+   
+      <ul class="list-group" id="eventList">
         <% events.forEach(event => { %>
-          <div class="list-group-item mb-3">
+          <li class="list-group-item mb-3" id="event-<%= event.ID %>">
             <h4 class="mb-1"><%= event.Titulo %></h4>
             <p class="mb-2"><strong>Descripción:</strong> <%= event.Descripcion %></p>
             <p class="mb-2"><strong>Fecha:</strong> <%= new Date(event.Fecha).toISOString().split('T')[0] %> <strong>Hora:</strong> <%= event.Hora %></p>
@@ -36,12 +37,9 @@
               <button class="btn btn-secondary btn-sm" data-bs-target="#joinEventModal<%= event.ID %>" data-bs-toggle="modal">Inscribirse</button>
               <button class="btn btn-danger btn-sm" data-bs-target="#leaveEventModal<%= event.ID %>" data-bs-toggle="modal">Desinscribirse</button>
             <%}%>
-          </div>
+            </li>
         <% }); %>
-      </div>
-    <% } else { %>
-      <p class="text-center text-muted">No hay eventos disponibles.</p>
-    <% } %>
+      </ul>
     <% if(user[0].Rol == "organizador"){%>
    <button type="button" class="btn btn-accesibilidad" data-bs-toggle="modal" data-bs-target="#createEventModal">
     Añadir Evento
@@ -58,7 +56,7 @@
         </div>
         <div class="modal-body">
           
-          <form  method="POST" action="/viewEvents/create"  id="createEventForm" class="mb-4">
+          <form id="createEventForm" class="mb-4">
             <div class="row mb-3">
 
               <div class="col-md-6">
@@ -142,10 +140,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <form id="deleteEventForm" method="POST" action="/viewEvents/delete/<%= event.ID%>">
-            <input type="hidden" id="eventId" name="eventId" value="">
-            <button type="submit" class="btn btn-danger">Eliminar Evento</button>
-          </form>
+          <button type="button" class="btn btn-danger deleteEventButton" data-event-id="<%= event.ID %>">Eliminar Evento</button>
         </div>
       </div>
     </div>
