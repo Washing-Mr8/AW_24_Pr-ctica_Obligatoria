@@ -40,7 +40,6 @@ router.get('/',verificarSesion ,function(req, res, next) {
 router.post('/create',function(req,res){
     const {eventTitle,eventType,eventDate,eventTime,eventLocation,eventCapacity,eventDescription,eventExact,eventDuration} = req.body;
     idORganizer = req.session.userId;
-    console.log(req.body);
     pool.getConnection(function(error,con){
         if(error){
             con.release();
@@ -64,8 +63,8 @@ router.post('/create',function(req,res){
                         }
                         canInsert = checkTime(repeated,eventTime,eventDuration);
                         if(canInsert){
-                            con.query('INSERT INTO eventos (Titulo,Descripcion,Fecha,Hora,Ubicacion,Capacidad_Maxima,tipo,Duracion,Capacidad_Actual,IDfacultad,Organizador_ID,facultad) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)'
-                                ,[eventTitle,eventDescription,eventDate,eventTime,eventExact,eventCapacity,eventType,eventDuration,0,locationID[0].ID,idORganizer,eventLocation], (err,result) =>{
+                            con.query('INSERT INTO eventos (Titulo,Descripcion,Fecha,Hora,Ubicacion,Capacidad_Maxima,tipo,Duracion,Capacidad_Actual,IDfacultad,Organizador_ID,facultad,activo) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)'
+                                ,[eventTitle,eventDescription,eventDate,eventTime,eventExact,eventCapacity,eventType,eventDuration,0,locationID[0].ID,idORganizer,eventLocation,true], (err,result) =>{
                                     if(err){
                                         con.release();
                                         return res.status(500).send({ success: false, message: 'Error al crear el evento.' });
@@ -156,12 +155,12 @@ router.post('/edit/:id', function(req,res){
     pool.getConnection(function(error,con){
         if(error){
             con.release();
-            throw error;
+            return res.status(500).send({ success: false, message: 'Error al editar el evento.' });
         }
         con.query('SELECT * FROM eventos WHERE id = ?', [eventId], (err,bdEvent) =>{
             if(err){
                 con.release();
-                throw err;
+                return res.status(500).send({ success: false, message: 'Error al editar el evento.' });
             }
             con.query('SELECT ID FROM facultades WHERE Nombre = ?', [eventLocation], (err,locationID) =>{
                 if(err){
@@ -196,14 +195,14 @@ router.post('/edit/:id', function(req,res){
                 con.query('SELECT Hora, Duracion FROM eventos WHERE Fecha = ? AND IDfacultad = ? AND Ubicacion = ?', [bdEvent[0].Fecha, bdEvent[0].IFfacultad, bdEvent[0].Ubicacion], (err,repeated) =>{
                     if(err){
                         con.release();
-                        throw err;
+                        return res.status(500).send({ success: false, message: 'Error al editar el evento.' });
                     }
                     canUpdate = checkTime(repeated,bdEvent[0].Hora,bdEvent[0].Duracion);
                     if(canUpdate){
                        pool.query('UPDATE Eventos SET Titulo = ?, tipo = ?, Fecha = ?, Hora = ?, Duracion = ?, facultad = ?, Ubicacion = ?, Capacidad_Maxima = ?, Descripcion = ?, IDfacultad = ? WHERE ID = ? ',
                         [bdEvent[0].Titulo,bdEvent[0].tipo,bdEvent[0].Fecha,bdEvent[0].Hora,bdEvent[0].Duracion,bdEvent[0].facultad,bdEvent[0].Ubicacion,bdEvent[0].Capacidad_Maxima,bdEvent[0].Descripcion,bdEvent[0].IDfacultad,eventId],
                         (err) =>{
-                            res.redirect("/viewEvents");
+                            return res.json({ success: true});
                         }
                        );
                     }
@@ -247,7 +246,7 @@ router.post('/join/:id', function(req,res){
                     
                     const datetime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
                     if(capacity[0].Capacidad_Maxima > capacity[0].Capacidad_Actual ){
-                        con.query('INSERT INTO inscripciones VALUES(?,?,?,?)',[userId,eventId,'inscrito',datetime],(err)=>{
+                        con.query('INSERT INTO inscripciones VALUES(?,?,?,?,?)',[userId,eventId,'inscrito',datetime,true],(err)=>{
                             if(err){
                                 con.release();
                                 throw err;
@@ -293,7 +292,7 @@ router.post('/join/:id', function(req,res){
                     
                     const datetime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
                     if(capacity[0].Capacidad_Maxima > capacity[0].Capacidad_Actual ){
-                        con.query('UPDATE inscripciones SET activo = true, Fecha = ?, Estado_Inscripcion = ?  WHERE Usuario_ID = ?',[datetime,'inscrito',userId],(err)=>{
+                        con.query('UPDATE inscripciones SET activo = true, Fecha_Inscripcion = ?, Estado_Inscripcion = ?  WHERE Usuario_ID = ?',[datetime,'inscrito',userId],(err)=>{
                             if(err){
                                 con.release();
                                 throw err;
@@ -309,7 +308,7 @@ router.post('/join/:id', function(req,res){
                         });
                     }
                     else{
-                        con.query('UPDATE inscripciones SET activo = true, Fecha = ?, Estado_Inscripcion = ?  WHERE Usuario_ID = ?',[datetime,'lista de espera',userId],(err)=>{
+                        con.query('UPDATE inscripciones SET activo = true, Fecha_Inscripcion = ?, Estado_Inscripcion = ?  WHERE Usuario_ID = ?',[datetime,'lista de espera',userId],(err)=>{
                             if(err){
                                 con.release();
                                 throw err;
@@ -345,7 +344,7 @@ router.post('/leave/:id', function(req,res){
                         throw err;
                     }
                     if(capacity[0].Capacidad_Actual === capacity[0].Capacidad_Maxima){
-                        con.query('DELETE FROM inscripciones WHERE Usuario_ID = ? AND Evento_ID = ?', [userId,eventId], (err)=>{
+                        con.query('UPDATE inscripciones SET activo = false WHERE Usuario_ID = ? AND Evento_ID = ?', [userId,eventId], (err)=>{
                             if(err){
                                 con.release();
                                 throw err;

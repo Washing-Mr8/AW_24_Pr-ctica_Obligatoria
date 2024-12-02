@@ -66,7 +66,7 @@ $(document).ready(function () {
         }
 
         $.ajax({
-            url: '/login',
+            url: '/user/login',
             method: 'POST',
             data: { loginEmail, loginPassword },
             success: function (response) {

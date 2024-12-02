@@ -1,20 +1,20 @@
 
-$(document).ready(function () {
-    
-    function showAlert(message, type,container) {
-      const alertHtml = `<div class="alert alert-${type} mt-3" role="alert">${message}</div>`;
-      $(container).append(alertHtml);
-  
-     
-      setTimeout(() => {
-        $(container).find('.alert').first().remove(); 
-      }, 3000); 
-    }
+function showAlert(message, type,container) {
+  const alertHtml = `<div class="alert alert-${type} mt-3" role="alert">${message}</div>`;
+  $(container).append(alertHtml);
 
-    function checkForSQL(inputString){
-        const sqlInjectionRegex = /\b(INSERT|DELETE|DROP|UPDATE)\b/i;
-        return sqlInjectionRegex.test(inputString);
-    }
+ 
+  setTimeout(() => {
+    $(container).find('.alert').first().remove(); 
+  }, 3000); 
+}
+
+function checkForSQL(inputString){
+  const sqlInjectionRegex = /\b(INSERT|DELETE|DROP|UPDATE)\b/i;
+  return sqlInjectionRegex.test(inputString);
+}
+
+$(document).ready(function () {
   
     $('#createEventForm').on('submit', function (e) {
       e.preventDefault(); 
@@ -68,8 +68,6 @@ $(document).ready(function () {
         showAlert('No puedes crear eventos en fechas anteriores a la actual', 'danger',"#createAlert");
         return;
       }
-
-      formData = new FormData(this);
 
       const eventData = {
         eventTitle: title,
@@ -236,7 +234,82 @@ $(document).ready(function () {
             }
         });
     });
+    $(document).on('submit', 'form[id^="editEventForm"]', function (e) {
+      e.preventDefault();
+      const formId = $(this).attr('id'); 
+      const eventId = formId.replace('editEventForm', '');
+      const modalId = `#editEventModal${eventId}`;
+      const eventElementId = `#event-${eventId}`; 
+      
+
+      const formData = {
+          eventTitle: $(`#editEventTitle${eventId}`).val(),
+          eventType: $(`#editEventType${eventId}`).val(),
+          eventDate: $(`#editEventDate${eventId}`).val(),
+          eventTime: $(`#editEventTime${eventId}`).val(),
+          eventLocation: $(`#editEventLocation${eventId}`).val(),
+          eventExact: $(`#editEventExact${eventId}`).val(),
+          eventCapacity: parseInt($(`#editEventCapacity${eventId}`).val(), 10),
+          eventDuration: parseInt($(`#editEventDuration${eventId}`).val(), 10),
+          eventDescription: $(`#editEventDescription${eventId}`).val(),
+      };
+    
+      if(checkForSQL(formData.eventTitle) || checkForSQL(formData.eventLocation) || checkForSQL(formData.eventDescription)){
+        $.ajax({
+            url: '/user/ban', 
+            method: 'POST',
+            success: function (response) {
+              alert(response.message); 
+            },
+            error: function (error) {
+              console.error(error); 
+              alert('Hubo un problema al editar.'); 
+            },
+          });
+          return;
+      }
+  
+      if (formData.eventCapacity <= 0 || formData.eventDuration <= 0) {
+          showAlert('La capacidad y duración deben ser mayores a 0.', 'danger', '#editAlert');
+          return;
+      }
+  
+      $.ajax({
+          url: `/viewEvents/edit/${eventId}`, 
+          type: 'POST',
+          data: JSON.stringify(formData),
+          contentType: 'application/json',
+          success: function (response) {
+            console.log("iditanding");
+              if (response.success) {
+                  const updatedEventHtml = `
+                      <h4 class="mb-1">${formData.eventTitle}</h4>
+                      <p class="mb-2"><strong>Descripción:</strong> ${formData.eventDescription}</p>
+                      <p class="mb-2"><strong>Fecha:</strong> ${formData.eventDate} <strong>Hora:</strong> ${formData.eventTime}</p>
+                      <p class="mb-2"><strong>Duración:</strong> ${formData.eventDuration} minutos</p>
+                      <p class="mb-2"><strong>Ubicación:</strong> ${formData.eventLocation}: ${formData.eventExact}</p>
+                      <p class="mb-2"><strong>Capacidad:</strong> 0 / ${formData.eventCapacity} personas</p>
+                      <p class="mb-2"><strong>Tipo de Evento:</strong> ${formData.eventType}</p>
+                  `;
+  
+                  $(`${eventElementId} h4`).html(formData.eventTitle);
+                  $(eventElementId).html(updatedEventHtml);
+  
+                  $(modalId).modal('hide');
+                  showAlert('Evento actualizado correctamente.', 'success', '#createdAlert');
+              } else {
+                  showAlert('No se pudo actualizar el evento. Intenta nuevamente.', 'danger', '#editAlert');
+              }
+          },
+          error: function () {
+              showAlert('Ocurrió un error al intentar actualizar el evento.', 'danger', '#editAlert');
+          },
+      });
   });
+  });
+
+  
+
   
   
   
