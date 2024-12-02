@@ -101,4 +101,12 @@ a {
   font-size: 1.5rem; 
 }
 
+.texto-exito {
+  color: #28a745; 
+  font-weight: bold;
+}
 
+.texto-error {
+  color: #dc3545; 
+  font-weight: bold;
+}

@@ -2,7 +2,6 @@ var express = require('express');
 var router = express.Router();
 const pool = require('../database.js');
 const verificarSesion = require('../middleware/autenticar');
-const { event } = require('jquery');
 
 
 router.get('/',verificarSesion ,function(req, res, next) {

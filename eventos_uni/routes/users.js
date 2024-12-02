@@ -3,6 +3,7 @@ var router = express.Router();
 const bcrypt = require('bcrypt');
 const pool = require('../database');
 const verificarSesion = require('../middleware/autenticar');
+const checkBannedIP = require('../middleware/banned');
 
 // Número de rondas para el hashing de contraseñas
 const SALT_ROUNDS = 10;
@@ -18,32 +19,40 @@ router.post('/ban', function (req, res) {
         con.release();
         throw err;
       }
-      return res.json({ success: true, message: 'Usuario baneado exitosamente' });
+      return res.json({ success: true, message: 'Usuario baneado por inyección SQL' });
     });
   });
 });
 
 
 /* GET registro page. */
-router.get('/register', function (req, res, next) {
-  pool.query('SELECT * from Facultades', (err, result) => {
+router.get('/register', checkBannedIP, function (req, res, next) {
+  pool.getConnection((error, con) => {
     if (err) {
-      console.error('Error al obtener facultades:', err);
-      return res.status(500).render('error', { mensaje: 'Error al cargar las facultades.' });
+      console.error('Error al intentar acceder a la base de datos:', err);
+      return res.status(500).json({ message: 'Error al acceder a la base de datos' });
     }
+    con.query('SELECT * from Facultades', (err, result) => {
+      con.release();
 
-    let isLogged = false;
-    let isAdmin = false;
-
-    if (req.session.role) {
-      isLogged = true;
-      if (req.session.role === 'organizador') {
-        isAdmin = true;
+      if (err) {
+        console.error('Error al obtener facultades:', err);
+        return res.status(500).render('error', { message: 'Error al cargar las facultades.' });
       }
-      return res.redirect('/user');
-    }
 
-    return res.render('registro', { title: 'Registro', facultades: result, isLogged: isLogged, isAdmin: isAdmin });
+      let isLogged = false;
+      let isAdmin = false;
+
+      if (req.session.role) {
+        isLogged = true;
+        if (req.session.role === 'organizador') {
+          isAdmin = true;
+        }
+        return res.redirect('/user');
+      }
+
+      return res.render('registro', { title: 'Registro', facultades: result, isLogged: isLogged, isAdmin: isAdmin });
+    });
   });
 });
 
@@ -51,48 +60,61 @@ router.get('/register', function (req, res, next) {
 router.post('/register', function (req, res) {
   const { registerName, registerEmail, registerPassword, registerPhone, facultad, role } = req.body;
 
-  // Verificar si el correo ya está registrado
-  pool.query('SELECT ID FROM usuarios WHERE Correo = ?', [registerEmail], (err, user) => {
+  pool.getConnection((error, con) => {
     if (err) {
-      console.error('Error al verificar el correo:', err);
-      return res.status(500).render('error', { mensaje: 'Error al registrar el usuario.' });
+      console.error('Error al intentar acceder a la base de datos:', err);
+      return res.status(500).json({ message: 'Error al acceder a la base de datos' });
     }
-
-    if (user.length > 0) {
-      return res.status(400).json({ mensaje: 'El correo ya está registrado.' });
-    }
-
-    pool.query('SELECT ID FROM facultades WHERE Nombre = ?', [facultad], (err, facultadID) => {
+    // Verificar si el correo ya está registrado
+    con.query('SELECT ID FROM usuarios WHERE Correo = ?', [registerEmail], (err, user) => {
       if (err) {
-        console.error('Error al acceder a las facultades:', err);
-        return res.status(500).render('error', { mensaje: 'Error al acceder a las facultades.' });
+        con.release();
+        console.error('Error al verificar el correo:', err);
+        return res.status(500).json({ mesagge: 'Error al registrar el usuario.' });
       }
 
-      // Hashear la contraseña
-      bcrypt.hash(registerPassword, SALT_ROUNDS, (err, hashedPassword) => {
+      if (user.length > 0) {
+        con.release();
+        return res.status(400).json({ mesagge: 'El correo ya está registrado.' });
+      }
+
+      con.query('SELECT ID FROM facultades WHERE Nombre = ?', [facultad], (err, facultadID) => {
         if (err) {
-          console.error('Error al hashear la contraseña:', err);
-          return res.status(500).render('error', { mensaje: 'Error al registrar el usuario.' });
+          con.release();
+          console.error('Error al acceder a las facultades:', err);
+          return res.status(500).json({ mesagge: 'Error al acceder a las facultades.' });
         }
 
-        // Insertar nuevo usuario
-        const newUser = [registerName, registerEmail, hashedPassword, registerPhone, facultadID[0].ID, role];
-        pool.query('INSERT INTO usuarios(Nombre,Correo,Password,Telefono,Facultad_ID,Rol) VALUES (?,?,?,?,?,?)', newUser, (err) => {
+        // Hashear la contraseña
+        bcrypt.hash(registerPassword, SALT_ROUNDS, (err, hashedPassword) => {
           if (err) {
-            console.error('Error al insertar usuario:', err);
-            return res.status(500).render('error', { mensaje: 'Error al registrar el usuario.' });
+            con.release();
+            console.error('Error al hashear la contraseña:', err);
+            return res.status(500).json({ mesagge: 'Error al registrar el usuario.' });
           }
 
-          res.redirect('/user/login');
+          // Insertar nuevo usuario
+          const newUser = [registerName, registerEmail, hashedPassword, registerPhone, facultadID[0].ID, role];
+          con.query('INSERT INTO usuarios(Nombre,Correo,Password,Telefono,Facultad_ID,Rol) VALUES (?,?,?,?,?,?)', newUser, (err) => {
+            con.release();
+
+            if (err) {
+              console.error('Error al insertar usuario:', err);
+              return res.status(500).json({ mesagge: 'Error al registrar el usuario.' });
+            }
+
+            res.redirect('/user/login');
+          });
         });
       });
     });
+
   });
 });
 
 
 /* GET Login page. */
-router.get('/login', function (req, res, next) {
+router.get('/login', checkBannedIP, function (req, res, next) {
 
   let isLogged = false;
   let isAdmin = false;
@@ -113,48 +135,53 @@ router.get('/login', function (req, res, next) {
 router.post('/login', function (req, res) {
   const { loginEmail, loginPassword } = req.body;
 
-  // Verificar si el correo existe
-  pool.query('SELECT * FROM usuarios WHERE Correo = ?', [loginEmail], (err, user) => {
+  pool.getConnection((error, con) => {
     if (err) {
-      console.error('Error al buscar el usuario:', err);
-      return res.status(500).render('error', { mensaje: 'Error en el servidor.' });
+      con.release();
+      console.error('Error al intentar acceder a la base de datos:', err);
+      return res.status(500).json({ message: 'Error al acceder a la base de datos' });
     }
 
-    if (user.length === 0) {
-      return res.status(401).json({ mensaje: 'No existe ningun usuario con el correo proporcionado' });
-    }
+    con.query('SELECT * FROM usuarios WHERE Correo = ?', [loginEmail], (err, user) => {
+      con.release();
 
-    const usuario = user[0];
-
-    // Comparar la contraseña
-    bcrypt.compare(loginPassword, usuario.Password, (err, result) => {
       if (err) {
-        console.error('Error al comparar contraseñas:', err);
-        return res.status(500).render('error', { mensaje: 'Error en el servidor.' });
+        console.error('Error al buscar el usuario:', err);
+        return res.status(500).json({ message: 'Error en el servidor.' });
       }
 
-      if (!result) {
-        return res.status(401).json({ mensaje: 'La contraseña es incorrecta o no coincide' });
+      if (user.length === 0) {
+        return res.status(401).json({ message: 'No existe ningun usuario con el correo proporcionado' });
       }
+      const usuario = user[0];
 
+      // Comparar la contraseña
+      bcrypt.compare(loginPassword, usuario.Password, (err, result) => {
+        if (err) {
+          console.error('Error al comparar contraseñas:', err);
+          return res.status(500).json({ message: 'Error al encriptar la contraseña.' });
+        }
 
-      // Guardar el usuario en la sesión
-      req.session.userId = usuario.ID;
-      req.session.correo = usuario.Correo;
-      req.session.role = usuario.Rol
+        if (!result) {
+          return res.status(401).json({ message: 'La contraseña es incorrecta o no coincide' });
+        }
 
-      res.redirect('/user');
-      // res.json({ mensaje: 'Inicio de sesión exitoso.', usuario: { id: usuario.ID, nombre: usuario.Nombre, rol: usuario.Rol } });
+        // Guardar el usuario en la sesión
+        req.session.userId = usuario.ID;
+        req.session.correo = usuario.Correo;
+        req.session.role = usuario.Rol
+
+        res.json({ success: true, message: 'Inicio de sesión exitoso.'});
+      });
     });
   });
 });
-
 
 router.get('/logout', function (req, res) {
   req.session.destroy((err) => {
     if (err) {
       console.error("Error al cerrar sesión:", err);
-      return res.status(500).render("error", { mensaje: "Error al cerrar sesión" });
+      return res.status(500).render("error", { message: "Error al cerrar sesión" });
     }
 
     return res.redirect('/user/login');
@@ -173,11 +200,11 @@ router.get('/:year?/:month?', verificarSesion, function (req, res, next) {
       if (err) {
         console.error('Error al obtener el usuario:', err);
         con.release();
-        return res.status(500).render('error', { mensaje: 'Error al obtener los datos del usuario.' });
+        return res.status(500).render('error', { message: 'Error al obtener los datos del usuario.' });
       }
 
       if (user.length === 0) {
-        return res.status(404).render('error', { mensaje: 'Usuario no encontrado.' });
+        return res.status(404).render('error', { mesagge: 'Usuario no encontrado.' });
       }
 
       con.query('SELECT * FROM eventos', (err, eventList) => {
@@ -258,24 +285,24 @@ router.post('/accesibilidad', function (req, res, next) {
       if (err) {
         console.error('Error al obtener el usuario:', err);
         con.release();
-        return res.status(500).render('error', { mensaje: 'Error al obtener los datos del usuario.' });
+        return res.status(500).json({ message: 'Error al obtener los datos del usuario.' });
       }
 
       if (result.length === 0) {
-        return res.status(404).render('error', { mensaje: 'Usuario no encontrado.' });
+        return res.status(404).json({ mesagge: 'Usuario no encontrado.' });
       }
 
       const id_config = result[0].Configuraciones_ID;
 
       con.query("UPDATE configuracion_accesibilidad SET Paleta_Colores = ?, Tamano_Texto = ? WHERE ID = ?", [tema, fuente, id_config], (err, result) => {
-        con.release(); 
-  
+        con.release();
+
         if (err) {
           console.error('Error al actualizar la configuracion de accesibilidad:', err);
           return res.status(500).json({ error: 'Error al guardar la configuracion de accesibilidad' });
         }
-  
-        res.json({ message: 'Configuracion de accesibilidad guardada correctamente' });
+
+        res.json({ success: true, message: 'Configuracion de accesibilidad guardada correctamente' });
       });
     });
   });
