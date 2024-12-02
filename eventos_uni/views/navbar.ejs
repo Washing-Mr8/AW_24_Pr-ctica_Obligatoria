@@ -21,22 +21,22 @@
                         <li>
                             <a class="nav-link active" href="/viewEvents"><i class="fa-solid fa-calendar"></i> Eventos</a>
                         </li>
-                        <%}%>
-
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
                                 aria-expanded="false">
-                                Dropdown
+                                <i class="fa-solid fa-user"></i> Usuario
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#">action</a></li>
-                                <li><a class="dropdown-item" href="#">Another action</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-user-pen"></i> Editar perfil</a></li>
                                 <li>
                                     <hr class="dropdown-divider">
                                 </li>
                                 <li><a class="dropdown-item" href="#">Something else here</a></li>
                             </ul>
                         </li>
+                        <%}%>
+
+                        
                     </ul>
 
                     <div class="button-container">
@@ -55,16 +55,22 @@
                         <%} else{ %>
         
                              <!-- Boton que activa el menu de Accesibilidad -->
-                        <div class="navbar-nav">
-                            <button class="index btn btn-accesibilidad " data-bs-toggle="modal"
-                                data-bs-target="#menuAccesibilidad"> <i class="fa-solid fa-universal-access"></i>
-                                Accesibilidad</button>
-                        </div>
+                             <div class="navbar-nav">
+                                <button class="index btn btn-accesibilidad " data-bs-toggle="modal"
+                                    data-bs-target="#menuAccesibilidad"> <i class="fa-solid fa-bell"></i>
+                                    Notificaciones</button>
+                            </div>
+
+                            <div class="navbar-nav">
+                                <button class="index btn btn-accesibilidad " data-bs-toggle="modal"
+                                    data-bs-target="#menuAccesibilidad"> <i class="fa-solid fa-universal-access"></i>
+                                    Accesibilidad</button>
+                            </div>
         
-                        <a href="/user/logout">
-                            <button class="index btn btn-danger ">
-                                <i class="fa-solid fa-right-to-bracket"></i> Cerrar sesión </button>
-                        </a>
+                            <a href="/user/logout">
+                                <button class="index btn btn-danger ">
+                                    <i class="fa-solid fa-right-to-bracket"></i> Cerrar sesión </button>
+                            </a>
         
                         <% } %>
     

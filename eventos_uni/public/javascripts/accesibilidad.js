@@ -25,7 +25,7 @@ $(document).ready(function () {
     function cambiarTema(tema) {
         console.log("Tema cambiado a: " + tema);
 
-        if(tema === "default"){
+        if(tema === "default" || tema === undefined){
             body.addClass("default");
             body.attr('data-bs-theme', "dark");
             modalContent.addClass("modal-default")
@@ -43,6 +43,9 @@ $(document).ready(function () {
     function cambiarFuente(fuente) {
         console.log("Tamaño de texto: " + fuente);
         body.removeClass('fuente-normal fuente-grande fuente-muy-grande');
+        if(fuente === undefined){
+            fuente = "fuente-normal";
+        }
         body.addClass(fuente);
         body.attr('data-font-size', fuente);
         sincronizarBotonesFuente(); // Actualiza el estado de los botones

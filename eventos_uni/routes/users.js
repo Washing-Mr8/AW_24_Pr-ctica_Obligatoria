@@ -3,7 +3,6 @@ var router = express.Router();
 const bcrypt = require('bcrypt');
 const pool = require('../database');
 const verificarSesion = require('../middleware/autenticar');
-const checkBannedIP = require('../middleware/banned');
 
 // Número de rondas para el hashing de contraseñas
 const SALT_ROUNDS = 10;
@@ -26,8 +25,8 @@ router.post('/ban', function (req, res) {
 
 
 /* GET registro page. */
-router.get('/register', checkBannedIP, function (req, res, next) {
-  pool.getConnection((error, con) => {
+router.get('/register', function (req, res, next) {
+  pool.getConnection((err, con) => {
     if (err) {
       console.error('Error al intentar acceder a la base de datos:', err);
       return res.status(500).json({ message: 'Error al acceder a la base de datos' });
@@ -60,7 +59,7 @@ router.get('/register', checkBannedIP, function (req, res, next) {
 router.post('/register', function (req, res) {
   const { registerName, registerEmail, registerPassword, registerPhone, facultad, role } = req.body;
 
-  pool.getConnection((error, con) => {
+  pool.getConnection((err, con) => {
     if (err) {
       console.error('Error al intentar acceder a la base de datos:', err);
       return res.status(500).json({ message: 'Error al acceder a la base de datos' });
@@ -114,7 +113,7 @@ router.post('/register', function (req, res) {
 
 
 /* GET Login page. */
-router.get('/login', checkBannedIP, function (req, res, next) {
+router.get('/login', function (req, res, next) {
 
   let isLogged = false;
   let isAdmin = false;
@@ -135,7 +134,7 @@ router.get('/login', checkBannedIP, function (req, res, next) {
 router.post('/login', function (req, res) {
   const { loginEmail, loginPassword } = req.body;
 
-  pool.getConnection((error, con) => {
+  pool.getConnection((err, con) => {
     if (err) {
       con.release();
       console.error('Error al intentar acceder a la base de datos:', err);

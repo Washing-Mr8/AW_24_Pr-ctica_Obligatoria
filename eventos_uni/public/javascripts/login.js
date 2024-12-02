@@ -13,23 +13,43 @@ $(document).ready(function () {
         }
     });
 
-    $('#loginForm').on('submit', function (event) {
+    const alertContainer = '#createdAlert';
+
+
+    // Función para mostrar alertas dinámicas
+    function showAlert(message, type, container) {
+        const alertHtml = `<div class="alert alert-${type} mt-3" role="alert">${message}</div>`;
+        $(container).append(alertHtml);
+
+        // Eliminar alerta automáticamente después de 3 segundos
+        setTimeout(() => {
+            $(container).find('.alert').first().remove();
+        }, 3000);
+    }
+
+    function checkForSQL(inputString) {
+        const sqlInjectionRegex = /\b(INSERT|DELETE|DROP|UPDATE)\b/i;
+        return sqlInjectionRegex.test(inputString);
+    }
+
+
+    $('.form-signin').on('submit', function (event) {
         event.preventDefault();
         console.log('En proceso de Login');
         const loginEmail = $('#loginEmail').val().trim();
         const loginPassword = $('#loginPassword').val().trim();
 
         if (!loginEmail || !loginPassword) {
-            mostrarMensajeModal('Por favor, completa todos los campos.', false);
+            showAlert('Por favor, completa todos los campos.', 'danger', alertContainer);
             return;
         }
 
-        if (checkForSQL(title) || checkForSQL(location) || checkForSQL(description)) {
+        if (checkForSQL(loginEmail) || checkForSQL(loginPassword)) {
             $.ajax({
                 url: '/user/ban',
                 method: 'POST',
                 success: function (response) {
-                    mostrarMensajeModal(response.message, true);
+                    showAlert(response.message, 'danger', alertContainer);
 
                     // Redirigir tras un breve retraso
                     setTimeout(() => {
@@ -39,7 +59,7 @@ $(document).ready(function () {
                 },
                 error: function (xhr, status, error) {
                     console.log(error);
-                    mostrarMensajeModal("Error al banear la IP", false);
+                    showAlert("Error al banear la IP", 'danger', alertContainer);
                 },
             });
             return;
@@ -51,41 +71,21 @@ $(document).ready(function () {
             data: { loginEmail, loginPassword },
             success: function (response) {
                 if (response.success) {
-                    mostrarMensajeModal(response.message, true);
+                    showAlert(response.message, 'success', alertContainer);
 
                     // Redirigir tras un breve retraso
                     setTimeout(() => {
                         window.location.href = '/user';
                     }, 2000);
                 } else {
-                    mostrarMensajeModal(response.message, false);
+                    showAlert(response.message, 'danger', alertContainer);
                 }
             },
             error: function (xhr, status, error) {
                 console.log(error);
-                mostrarMensajeModal("Error al iniciar sesión", false);
+                showAlert("Error al iniciar sesión", 'danger', alertContainer);
             }
         });
     });
-
-    // Mostrar el modal con mensaje dinámico
-    function mostrarMensajeModal(mensaje, exitoso) {
-        const modalElement = new bootstrap.Modal(document.getElementById('mensajeModal'));
-        const mensajeModalBody = $('#mensajeModalBody');
-
-        // Cambiar contenido y estilo
-        mensajeModalBody.html(`<p class="${exitoso ? 'texto-exito' : 'texto-error'}">${mensaje}</p>`);
-        modalElement.show();
-    }
-
-    // Cerrar modal al hacer clic en el botón "OK"
-    $('#cerrarMensajeModal').on('click', function () {
-        $('#mensajeModal').modal('hide');
-    });
-
-    function checkForSQL(inputString) {
-        const sqlInjectionRegex = /\b(INSERT|DELETE|DROP|UPDATE)\b/i;
-        return sqlInjectionRegex.test(inputString);
-    }
 
 });

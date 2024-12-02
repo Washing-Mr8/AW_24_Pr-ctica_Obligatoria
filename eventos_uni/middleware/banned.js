@@ -4,6 +4,7 @@ function checkBannedIP(req, res, next) {
     
     pool.getConnection(function(error, con) {
       if (error) {
+        console.log(error);
         return res.status(500).json({ success: false, message: 'Error de conexión a la base de datos' });
       }
       
@@ -24,5 +25,5 @@ function checkBannedIP(req, res, next) {
     });
   }
   
-  module.exports =  checkBannedIP;
+  module.exports = { checkBannedIP };
   
