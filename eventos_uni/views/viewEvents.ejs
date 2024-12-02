@@ -21,19 +21,20 @@
             <p class="mb-2"><strong>Fecha:</strong> <%= new Date(event.Fecha).toISOString().split('T')[0] %> <strong>Hora:</strong> <%= event.Hora %></p>
             <p class="mb-2"><strong>Duración:</strong> <%= event.Duracion %></p>
             <p class="mb-2"><strong>Ubicación:</strong> <%= event.facultad %>:<%= event.Ubicacion %></p>
-            <p class="mb-2"><strong>Capacidad:</strong> <%= event.Capacidad_Actual %> / <%= event.Capacidad_Maxima %> personas</p>
+            <p class="mb-1"><strong>Capacidad:</strong> <%= event.Capacidad_Actual %> / <%= event.Capacidad_Maxima %> personas</p>
             <p class="mb-2"><strong>Tipo de Evento:</strong> <%= event.tipo %></p>
             <% if(user[0].Rol == "organizador"){%>
               <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editEventModal<%= event.ID %>">Editar Evento</button>
               <button class="btn btn-danger btn-sm"  data-bs-toggle="modal" data-bs-target="#deleteEventModal<%= event.ID%>">Eliminar Evento</button>
+              <button class="btn btn-info btn-sm" href="/viewEvents/showDetails/<%= event.ID%>">Ver participantes</button>
             <% }else{ %>
-              <p class="mb-2"><strong>Esta de la inscripción:</strong> 
+              <p class="mb-3"><strong>Esta de la inscripción:</strong> 
                 <% if(stateList.has(event.ID)){%>
                   <%= stateList.get(event.ID) %>
-                  <button class="btn btn-danger btn-sm" data-bs-target="#leaveEventModal<%= event.ID %>" data-bs-toggle="modal">Desinscribirse</button>
+                  <button class="btn btn-danger btn-sm" data-bs-target="#leaveEventModal<%= event.ID %>" id="leaveEvent<%= event.ID %>" data-bs-toggle="modal">Desinscribirse</button>
                 <%}else{%>
                   No inscrito
-                  <button class="btn btn-secondary btn-sm" data-bs-target="#joinEventModal<%= event.ID %>" data-bs-toggle="modal">Inscribirse</button>
+                  <button class="btn btn-secondary btn-sm" data-bs-target="#joinEventModal<%= event.ID %>" id="joinEvent<%= event.ID %>" data-bs-toggle="modal">Inscribirse</button>
                   <%}%>
               </p>
               
@@ -228,10 +229,7 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-            <form id="joinEventForm" method="POST" action="/viewEvents/join/<%= event.ID%>">
-              <input type="hidden" id="eventId" name="eventId" value="">
-              <button type="submit" class="btn btn-accesibilidad">Unirse</button>
-            </form>
+            <button type="button" class="btn btn-accesibilidad joinEvent" id="joinEventButton<%= event.ID %>" data-event-id="<%= event.ID %>">Unirse</button>
           </div>
         </div>
       </div>
@@ -248,10 +246,7 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-            <form id="joinEventForm" method="POST" action="/viewEvents/leave/<%= event.ID%>">
-              <input type="hidden" id="eventId" name="eventId" value="">
-              <button type="submit" class="btn btn-danger">Abandonar</button>
-            </form>
+            <button type="button" class="btn btn-danger leaveEvent" id="leaveEventButton<%= event.ID %>" data-event-id="<%= event.ID %>">Desinscribirse</button>
           </div>
         </div>
       </div>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <%- include("head")%>
+</head>
+<body class="<%= theme %> <%= fontSize %>" data-bs-theme="<%= theme === 'default' ? 'dark' : theme %>"  data-theme="<%= theme %>" data-font-size="<%= fontSize %>">
+    <%- include("navbar") %>
+
+    <%- include("accesibilidad") %>
+  <div class="container mt-5">
+    <div class="row">
+      <div class="col-md-8">
+        <h2 class="mb-4">Detalles del Evento: <%= event.Titulo %></h2>
+        
+        <p class="mb-2"><strong>Descripción:</strong> <%= event.Descripcion %></p>
+        <p class="mb-2"><strong>Fecha:</strong> <%= new Date(event.Fecha).toISOString().split('T')[0] %> <strong>Hora:</strong> <%= event.Hora %></p>
+        <p class="mb-2"><strong>Duración:</strong> <%= event.Duracion %></p>
+        <p class="mb-2"><strong>Ubicación:</strong> <%= event.facultad %>: <%= event.Ubicacion %></p>
+        <p class="mb-1"><strong>Capacidad:</strong> <%= event.Capacidad_Actual %> / <%= event.Capacidad_Maxima %> personas</p>
+        <p class="mb-2"><strong>Tipo de Evento:</strong> <%= event.tipo %></p>
+
+        <div class="col-md-4">
+        <h3>Participantes</h3>
+        <ul class="list-group">
+          <% event.participantes.forEach(participante => { %>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <%= participante.nombre %>
+              <span class="badge badge-primary">
+                <% if(participante.inscrito) { %>
+                  Inscrito
+                <% } else { %>
+                  Lista de espera
+                <% } %>
+              </span>
+            </li>
+          <% }); %>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <%- include("footer") %>
+  <script src="/javascripts/events.js"></script>
+</body>
+</html>

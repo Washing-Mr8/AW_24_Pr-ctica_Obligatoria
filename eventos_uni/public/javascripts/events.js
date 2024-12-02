@@ -97,7 +97,7 @@ $(document).ready(function () {
                     <p class="mb-2"><strong>Fecha:</strong> ${new Date(newEvent.Fecha).toISOString().split('T')[0]} <strong>Hora:</strong> ${newEvent.Hora}</p>
                     <p class="mb-2"><strong>Duración:</strong> ${newEvent.Duracion}</p>
                     <p class="mb-2"><strong>Ubicación:</strong> ${newEvent.Facultad}: ${newEvent.Ubicacion}</p>
-                    <p class="mb-2"><strong>Capacidad:</strong> ${newEvent.Capacidad_Actual} / ${newEvent.Capacidad_Maxima} personas</p>
+                    <p class="mb-1"><strong>Capacidad:</strong> ${newEvent.Capacidad_Actual} / ${newEvent.Capacidad_Maxima} personas</p>
                     <p class="mb-2"><strong>Tipo de Evento:</strong> ${newEvent.Tipo}</p>
                     <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editEventModal${newEvent.ID}">Editar Evento</button>
                     <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteEventModal${newEvent.ID}">Eliminar Evento</button>
@@ -280,16 +280,18 @@ $(document).ready(function () {
           data: JSON.stringify(formData),
           contentType: 'application/json',
           success: function (response) {
-            console.log("iditanding");
               if (response.success) {
+                  const newEvent = response.event;
                   const updatedEventHtml = `
-                      <h4 class="mb-1">${formData.eventTitle}</h4>
-                      <p class="mb-2"><strong>Descripción:</strong> ${formData.eventDescription}</p>
-                      <p class="mb-2"><strong>Fecha:</strong> ${formData.eventDate} <strong>Hora:</strong> ${formData.eventTime}</p>
-                      <p class="mb-2"><strong>Duración:</strong> ${formData.eventDuration} minutos</p>
-                      <p class="mb-2"><strong>Ubicación:</strong> ${formData.eventLocation}: ${formData.eventExact}</p>
-                      <p class="mb-2"><strong>Capacidad:</strong> 0 / ${formData.eventCapacity} personas</p>
-                      <p class="mb-2"><strong>Tipo de Evento:</strong> ${formData.eventType}</p>
+                    <h4 class="mb-1">${newEvent.Titulo}</h4>
+                    <p class="mb-2"><strong>Descripción:</strong> ${newEvent.Descripcion}</p>
+                    <p class="mb-2"><strong>Fecha:</strong> ${new Date(newEvent.Fecha).toISOString().split('T')[0]} <strong>Hora:</strong> ${newEvent.Hora}</p>
+                    <p class="mb-2"><strong>Duración:</strong> ${newEvent.Duracion}</p>
+                    <p class="mb-2"><strong>Ubicación:</strong> ${newEvent.facultad}: ${newEvent.Ubicacion}</p>
+                    <p class="mb-1"><strong>Capacidad:</strong> ${newEvent.Capacidad_Actual} / ${newEvent.Capacidad_Maxima} personas</p>
+                    <p class="mb-2"><strong>Tipo de Evento:</strong> ${newEvent.Tipo}</p>
+                    <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editEventModal${newEvent.ID}">Editar Evento</button>
+                    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteEventModal${newEvent.ID}">Eliminar Evento</button>
                   `;
   
                   $(`${eventElementId} h4`).html(formData.eventTitle);
@@ -298,14 +300,76 @@ $(document).ready(function () {
                   $(modalId).modal('hide');
                   showAlert('Evento actualizado correctamente.', 'success', '#createdAlert');
               } else {
-                  showAlert('No se pudo actualizar el evento. Intenta nuevamente.', 'danger', '#editAlert');
+                $(modalId).modal('hide');
+                  showAlert('No se pudo actualizar el evento. Intenta nuevamente.', 'danger', '#createdAlert');
               }
           },
           error: function () {
-              showAlert('Ocurrió un error al intentar actualizar el evento.', 'danger', '#editAlert');
+              $(modalId).modal('hide');
+              showAlert('Ocurrió un error al intentar actualizar el evento.', 'danger', '#createdAlert');
           },
       });
-  });
+    });
+
+    $(document).on('click', '.joinEvent', function() {
+      const eventId = $(this).data('event-id');
+      
+      $.ajax({
+          url: `/viewEvents/join/${eventId}`,
+          method: 'POST',
+          success: function(response) {
+              console.log(response);
+              if (response.success) {
+                  const eventElementId = `#event-${eventId}`;
+                  const totalCapacity = response.totalCapacity;
+                  const actualCapacity = response.actualCapacity;
+                  const state = response.state;
+                  
+                  $(`#joinEvent${eventId}`).remove();
+                  $(`${eventElementId} p.mb-3 `).html(`<strong>Estado de la inscripción:</strong> ${state} <button class="btn btn-danger btn-sm" data-bs-target="#leaveEventModal${eventId}" id="leaveEvent${eventId}"data-bs-toggle="modal">Desinscribirse</button>`);
+                  $(`${eventElementId} p.mb-1`).html(`<strong>Capacidad:</strong> ${actualCapacity}/ ${totalCapacity} personas`);
+                  $(`#joinEventModal${eventId}`).modal('hide');
+                  showAlert('Tu inscripción ha sido actualizada.', 'success', '#createdAlert');
+              } else {
+                $(`#joinEventModal${eventId}`).modal('hide');
+                  showAlert('Hubo un problema al intentar inscribirte. Intenta nuevamente.', 'danger', '#createdAlert');
+              }
+          },
+          error: function() {
+            $(`#joinEventModal${eventId}`).modal('hide');
+              showAlert('Hubo un error al intentar inscribirte. Intenta nuevamente.', 'danger', '#createdAlert');
+          }
+      });
+    });
+
+    $(document).on('click', '.leaveEvent', function() {
+      const eventId = $(this).data('event-id');
+      
+      $.ajax({
+          url: `/viewEvents/leave/${eventId}`,
+          method: 'POST',
+          success: function(response) {
+              if (response.success) {
+                  const eventElementId = `#event-${eventId}`;
+                  const totalCapacity = response.totalCapacity;
+                  const actualCapacity = response.actualCapacity;
+                  $(`#leaveEvent${eventId}`).remove();
+                  $(`${eventElementId} p.mb-3 `).html(`<strong>Estado de la inscripción:</strong> No inscrito <button class="btn btn-secondary btn-sm" data-bs-target="#joinEventModal${eventId}" id="joinEvent${eventId}"data-bs-toggle="modal">Inscribirse</button>`);
+                  $(`${eventElementId} p.mb-1`).html(`<strong>Capacidad:</strong> ${actualCapacity}/ ${totalCapacity} personas`);
+                  $(`#leaveEventModal${eventId}`).modal('hide');
+                  showAlert('Tu inscripción ha sido actualizada.', 'success', '#createdAlert');
+              } else {
+                $(`#leaveEventModal${eventId}`).modal('hide');
+                  showAlert('Hubo un problema al intentar inscribirte. Intenta nuevamente.', 'danger', '#createdAlert');
+              }
+          },
+          error: function() {
+            $(`#leaveEventModal${eventId}`).modal('hide');
+              showAlert('Hubo un error al intentar inscribirte. Intenta nuevamente.', 'danger', '#createdAlert');
+          }
+      });
+    });
+  
   });
 
   
