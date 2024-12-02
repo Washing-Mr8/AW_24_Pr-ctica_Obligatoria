@@ -18,21 +18,20 @@
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <% if(isLogged){%>
-                        <li>
-                            <a class="nav-link active" href="/viewEvents"><i class="fa-solid fa-calendar"></i> Eventos</a>
-                        </li>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                            <a class="nav-link  dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
                                 aria-expanded="false">
                                 <i class="fa-solid fa-user"></i> Usuario
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#"><i class="fa-solid fa-user-pen"></i> Editar perfil</a></li>
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>
-                                <li><a class="dropdown-item" href="#">Something else here</a></li>
+                                <li><a class="dropdown-item" href="/user/editarPerfil"><i class="fa-solid fa-user-pen"></i> Editar perfil</a></li>
                             </ul>
+                        </li>
+                        <li>
+                            <a class="nav-link " href="/viewEvents"><i class="fa-solid fa-clipboard"></i> Eventos</a>
+                        </li>
+                        <li>
+                            <a class="nav-link " href="/calendar"><i class="fa-solid fa-calendar"></i> Calendario</a>
                         </li>
                         <%}%>
 
@@ -56,13 +55,13 @@
         
                              <!-- Boton que activa el menu de Accesibilidad -->
                              <div class="navbar-nav">
-                                <button class="index btn btn-accesibilidad " data-bs-toggle="modal"
+                                <button class="index btn btn-accesibilidad outline " data-bs-toggle="modal"
                                     data-bs-target="#menuAccesibilidad"> <i class="fa-solid fa-bell"></i>
                                     Notificaciones</button>
                             </div>
 
                             <div class="navbar-nav">
-                                <button class="index btn btn-accesibilidad " data-bs-toggle="modal"
+                                <button class="index btn btn-accesibilidad outline" data-bs-toggle="modal"
                                     data-bs-target="#menuAccesibilidad"> <i class="fa-solid fa-universal-access"></i>
                                     Accesibilidad</button>
                             </div>

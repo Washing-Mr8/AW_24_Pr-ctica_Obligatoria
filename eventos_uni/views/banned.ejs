@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <%- include("head") %>
+
+    <link rel="stylesheet" href="/css/banned.css" type="text/css" />
+</head>
+
+<body>
+    <div class="main-container">
+        <h1>Acceso Restringido</h1>
+        <p>Tu IP (<%= ip %>) está bloqueada.</p>
+        <p class="texto-error">Razón: <%= message %>
+        </p>
+        <p>Si crees que esto es un error, por favor contáctanos.</p>
+
+    </div>
+
+</body>
+
+</html>

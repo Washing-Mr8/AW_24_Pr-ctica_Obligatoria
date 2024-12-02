@@ -89,27 +89,42 @@ router.post('/register', function (req, res) {
           if (err) {
             con.release();
             console.error('Error al hashear la contraseña:', err);
-            return res.status(500).json({ mesagge: 'Error al registrar el usuario.' });
+            return res.status(500).json({ mesagge: 'Error al hashear la contraseña.' });
           }
 
-          // Insertar nuevo usuario
-          const newUser = [registerName, registerEmail, hashedPassword, registerPhone, facultadID[0].ID, role];
-          con.query('INSERT INTO usuarios(Nombre,Correo,Password,Telefono,Facultad_ID,Rol) VALUES (?,?,?,?,?,?)', newUser, (err) => {
-            con.release();
+          //creamos su configuracion de accesibilidad
+          const accesibility = ['default', 'fuente-normal', 'default'];
+          con.query('INSERT INTO configuracion_accesibilidad(Paleta_Colores,Tamano_Texto,Configuracion_Navegacion) VALUES (?,?,?);',
+            accesibility, (err, result) => {
+              if (err) {
+                con.release();
+                console.error('Error al insertar configuración de accesibilidad:', err);
+                return res.status(500).json({ message: 'Error al crear configuración de accesibilidad.' });
+              }
 
-            if (err) {
-              console.error('Error al insertar usuario:', err);
-              return res.status(500).json({ mesagge: 'Error al registrar el usuario.' });
-            }
+              // Obtener el ID de la configuracion recien creada
+              const configID = result.insertId;
 
-            res.redirect('/user/login');
-          });
+              // Insertar nuevo usuario
+              const newUser = [registerName, registerEmail, hashedPassword, registerPhone, facultadID[0].ID, role, configID];
+              con.query('INSERT INTO usuarios(Nombre,Correo,Password,Telefono,Facultad_ID,Rol,Configuraciones_ID) VALUES (?,?,?,?,?,?,?)', newUser, (err) => {
+                con.release();
+
+                if (err) {
+                  console.error('Error al insertar usuario:', err);
+                  return res.status(500).json({ mesagge: 'Error al registrar el usuario.' });
+                }
+
+                return res.json({ success: true, message: 'Usuario registrado correctamente, por favor inicie sesión' });
+              });
+            });
         });
       });
     });
 
   });
 });
+
 
 
 /* GET Login page. */
@@ -158,7 +173,7 @@ router.post('/login', function (req, res) {
       bcrypt.compare(loginPassword, usuario.Password, (err, result) => {
         if (err) {
           console.error('Error al comparar contraseñas:', err);
-          return res.status(500).json({ message: 'Error al encriptar la contraseña.' });
+          return res.status(500).json({ message: 'Error al comparar contraseñas' });
         }
 
         if (!result) {
@@ -170,7 +185,7 @@ router.post('/login', function (req, res) {
         req.session.correo = usuario.Correo;
         req.session.role = usuario.Rol
 
-        res.json({ success: true, message: 'Inicio de sesión exitoso.'});
+        res.json({ success: true, message: 'Inicio de sesión exitoso.' });
       });
     });
   });
@@ -269,6 +284,25 @@ router.post('/accesibilidad', function (req, res, next) {
   });
 });
 
+router.get('/editarPerfil',verificarSesion, function(req,res){
+  pool.getConnection((err, con) => {
+    if (err) {
+      console.error('Error al intentar acceder a la base de datos:', err);
+      return res.status(500).json({ message: 'Error al acceder a la base de datos' });
+    }
+    con.query('SELECT * from Facultades', (err, result) => {
+      con.release();
+
+      if (err) {
+        console.error('Error al obtener facultades:', err);
+        return res.status(500).render('error', { message: 'Error al cargar las facultades.' });
+      }
+
+
+      return res.render('editarperfil', { title: 'Editar perfil', facultades: result });
+    });
+  });
+});
 
 router.get('/:year?/:month?', verificarSesion, function (req, res, next) {
   pool.getConnection(function (error, con) {
@@ -309,6 +343,7 @@ router.get('/:year?/:month?', verificarSesion, function (req, res, next) {
 
   });
 });
+
 
 
 module.exports = router;

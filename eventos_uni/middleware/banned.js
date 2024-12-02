@@ -16,8 +16,8 @@ function checkBannedIP(req, res, next) {
   
         if (results.length > 0) {
           con.release();
-          return res.status(403).json({ success: false, message: 'Tu IP está baneada' });
-        }
+          return res.render('banned', {title:"IP Bloqueada", ip: ip, message: 'Intento de inyección SQL, tu IP está baneada de OrgaNice.' 
+          });        }
   
         con.release();
         next();

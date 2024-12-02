@@ -15,7 +15,6 @@ $(document).ready(function () {
 
     const alertContainer = '#createdAlert';
 
-
     // Función para mostrar alertas dinámicas
     function showAlert(message, type, container) {
         const alertHtml = `<div class="alert alert-${type} mt-3" role="alert">${message}</div>`;
@@ -27,12 +26,6 @@ $(document).ready(function () {
         }, 3000);
     }
 
-    function checkForSQL(inputString) {
-        const sqlInjectionRegex = /\b(INSERT|DELETE|DROP|UPDATE)\b/i;
-        return sqlInjectionRegex.test(inputString);
-    }
-
-
     $('.form-signin').on('submit', function (event) {
         event.preventDefault();
         console.log('En proceso de Login');
@@ -42,6 +35,11 @@ $(document).ready(function () {
         if (!loginEmail || !loginPassword) {
             showAlert('Por favor, completa todos los campos.', 'danger', alertContainer);
             return;
+        }
+
+        function checkForSQL(inputString) {
+            const sqlInjectionRegex = /\b(INSERT|DELETE|DROP|UPDATE)\b/i;
+            return sqlInjectionRegex.test(inputString);
         }
 
         if (checkForSQL(loginEmail) || checkForSQL(loginPassword)) {
@@ -72,18 +70,19 @@ $(document).ready(function () {
             success: function (response) {
                 if (response.success) {
                     showAlert(response.message, 'success', alertContainer);
-
                     // Redirigir tras un breve retraso
                     setTimeout(() => {
                         window.location.href = '/user';
                     }, 2000);
+
                 } else {
                     showAlert(response.message, 'danger', alertContainer);
                 }
             },
             error: function (xhr, status, error) {
-                console.log(error);
-                showAlert("Error al iniciar sesión", 'danger', alertContainer);
+                const errorMessage = xhr.responseJSON?.message || 'No se ha podido iniciar sesión.';
+                console.log(errorMessage);
+                showAlert(errorMessage, 'danger', alertContainer);
             }
         });
     });

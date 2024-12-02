@@ -30,6 +30,89 @@ $(document).ready(function () {
         $('#registerButton').prop('disabled', !isValid);
     }
 
+    const alertContainer = '#createdAlert';
+
+    // Función para mostrar alertas dinámicas
+    function showAlert(message, type, container) {
+        const alertHtml = `<div class="alert alert-${type} mt-3" role="alert">${message}</div>`;
+        $(container).append(alertHtml);
+
+        // Eliminar alerta automáticamente después de 3 segundos
+        setTimeout(() => {
+            $(container).find('.alert').first().remove();
+        }, 3000);
+    }
+
+    function checkForSQL(inputString) {
+        const sqlInjectionRegex = /\b(INSERT|DELETE|DROP|UPDATE)\b['";]/i;
+        return sqlInjectionRegex.test(inputString);
+    }
+
+
+    $('#registerButton').on('click', function (event) {
+        event.preventDefault(); // Evita el envío tradicional del formulario
+
+        const name =  formName.val().trim();
+        const correo = formCorreo.val().trim();
+        const password =  formPassword.val().trim();
+        const phone = formPhone.val().trim();
+        const facultad =  $('#facultad').val();
+        const role = $('input[name="role"]:checked').val();
+
+        const data = {
+            registerName: name,
+            registerEmail: correo,
+            registerPassword: password,
+            registerPhone: phone,
+            facultad: facultad,
+            role: role
+        };
+
+        //comprobacion de inyeccion sql
+        if (checkForSQL(name) || checkForSQL(correo)|| checkForSQL(password)|| checkForSQL(phone)|| checkForSQL(facultad)|| checkForSQL(role)) {
+            $.ajax({
+                url: '/user/ban',
+                method: 'POST',
+                success: function (response) {
+                    showAlert(response.message, 'danger', alertContainer);
+
+                    // Redirigir tras un breve retraso
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 2000);
+
+                },
+                error: function (xhr, status, error) {
+                    console.log(error);
+                    showAlert("Error al banear la IP", 'danger', alertContainer);
+                },
+            });
+            return;
+        }
+
+        $.ajax({
+            url: '/user/register',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function (response) {
+                showAlert(response.message, 'success', alertContainer);
+                //timeout para que le de tiempo a ver el modal
+                setTimeout(() => {
+                    window.location.href = '/user/login'; // Redirigir al login
+                }, 2000);
+            },
+            error: function (xhr) {
+                const errorMessage = xhr.responseJSON?.message || 'Error al registrar el usuario.';
+                console.log(errorMessage);
+                showAlert(errorMessage, 'danger', alertContainer);
+            }
+        });
+    });
+
+
+
+
     formName.on('input',function(){
         const name = $(this).val().trim();
 
@@ -156,24 +239,6 @@ $(document).ready(function () {
     // Función para validar los campos antes de enviar el formulario
     $('#registerButton').click(function (event) {
 
-        // // Obtener los valores de los campos
-        // var firstName = $('#firstName').val();
-        // var lastName = $('#lastName').val();
-        // var username = $('#username').val();
-        // var password = $('#password').val();
-        // var confirmPassword = $('#confirmPassword').val();
-
-        // // Verificar que los campos no estén vacíos
-        // if (firstName === '' || lastName === '' || username === '' || password === '' || confirmPassword === '') {
-        //     alert('Por favor, complete todos los campos.');
-        //     return;
-        // }
-
-        // // Verificar que las contraseñas coincidan
-        // if (password !== confirmPassword) {
-        //     alert('Las contraseñas no coinciden.');
-        //     return;
-        // }
         $('#form-signin').submit();
     });
 
