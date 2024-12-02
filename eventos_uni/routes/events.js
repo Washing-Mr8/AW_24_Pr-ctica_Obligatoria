@@ -8,7 +8,7 @@ router.get('/',verificarSesion ,function(req, res, next) {
     idUser = req.session.userId;
     pool.query('SELECT Rol FROM usuarios WHERE ID = ?', [idUser], (err,user) =>{
         if(user[0].Rol == "organizador"){
-            pool.query('SELECT * FROM eventos WHERE Organizador_ID = ?', [idUser],(err,eventList)=>{
+            pool.query('SELECT * FROM eventos WHERE Organizador_ID = ? AND activo = true', [idUser],(err,eventList)=>{
                 if(err) throw err;
                 pool.query('SELECT * FROM facultades',(err,locationList)=>{
                     if(err) throw err;
@@ -17,11 +17,11 @@ router.get('/',verificarSesion ,function(req, res, next) {
             });
         }
         else{
-            pool.query('SELECT * FROM eventos',(err,eventList) =>{
+            pool.query('SELECT * FROM eventos WHERE activo = true',(err,eventList) =>{
                 if(err) throw err;
                 pool.query('SELECT * FROM facultades',(err,locationList)=>{
                     if(err) throw err;
-                    pool.query('SELECT * FROM inscripciones WHERE Usuario_ID = ?',[idUser],(err,stateList)=>{
+                    pool.query('SELECT * FROM inscripciones WHERE Usuario_ID = ? AND activo = true',[idUser],(err,stateList)=>{
                         if(err) throw err;
                         var map = new Map();
                         stateList.forEach(element => {
@@ -46,7 +46,7 @@ router.post('/create',function(req,res){
             con.release();
             return res.status(500).send({ success: false, message: 'Error al crear el evento.' });
         }
-        con.query('SELECT id FROM eventos WHERE Titulo = ?',[eventTitle], (err,check)=>{
+        con.query('SELECT id FROM eventos WHERE Titulo = ? AND activo = true',[eventTitle], (err,check)=>{
             if(err){
                 con.release();
                 return res.status(500).send({ success: false, message: 'Error al crear el evento.' });
@@ -57,7 +57,7 @@ router.post('/create',function(req,res){
                         con.release();
                         return res.status(500).send({ success: false, message: 'Error al crear el evento.' });
                     }
-                    con.query('SELECT Hora, Duracion FROM eventos WHERE Fecha = ? AND IDfacultad = ? AND Ubicacion = ?', [eventDate, locationID[0].ID, eventExact], (err,repeated) =>{
+                    con.query('SELECT Hora, Duracion FROM eventos WHERE Fecha = ? AND IDfacultad = ? AND Ubicacion = ? AND activo = true', [eventDate, locationID[0].ID, eventExact], (err,repeated) =>{
                         if(err){
                             con.release();
                             return res.status(500).send({ success: false, message: 'Error al crear el evento.' });
@@ -124,12 +124,12 @@ router.post('/delete/:id', function(req,res){
                 mensaje = "El evento con id " + req.params.id + " ha sido cancelado";
                 sentNotification(0,"Un evento al que estabas inscrito ha sido eliminado",users,con);
             }
-            con.query('DELETE FROM inscripciones WHERE Evento_ID = ?', [req.params.id], (err)=>{
+            con.query('UPDATE inscripciones SET activo = ? WHERE Evento_ID = ?', [false,req.params.id], (err)=>{
                 if(err){
                     con.release();
                     return res.status(500).send({ success: false, message: 'Error al eliminar el evento.' });
                 }
-                pool.query('DELETE FROM eventos WHERE id = ?', [req.params.id], (err) => {
+                pool.query('UPDATE eventos SET activo = ? WHERE id = ?', [false,req.params.id], (err) => {
                     if(err) throw err;
                     con.release();
                     return res.json({ success: true, message: 'Evento eliminado correctamente.' });
@@ -223,7 +223,7 @@ router.post('/join/:id', function(req,res){
             con.release();
             throw error;
         }
-        con.query('SELECT Estado_Inscripcion FROM inscripciones WHERE Usuario_ID = ? AND Evento_ID = ?', [userId,eventId], (err,state)=>{
+        con.query('SELECT Estado_Inscripcion,activo FROM inscripciones WHERE Usuario_ID = ? AND Evento_ID = ?', [userId,eventId], (err,state)=>{
             if(error){
                 con.release();
                 throw error;
@@ -236,16 +236,15 @@ router.post('/join/:id', function(req,res){
                     }
                     const now = new Date();
 
-                    // Obtener los componentes de fecha y hora
                     const year = now.getFullYear();
-                    const month = String(now.getMonth() + 1).padStart(2, '0'); // Mes (1-12)
+                    const month = String(now.getMonth() + 1).padStart(2, '0');
                     const day = String(now.getDate()).padStart(2, '0');
 
                     const hours = String(now.getHours()).padStart(2, '0');
                     const minutes = String(now.getMinutes()).padStart(2, '0');
                     const seconds = String(now.getSeconds()).padStart(2, '0');
 
-                    // Formatear como DATETIME
+                    
                     const datetime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
                     if(capacity[0].Capacidad_Maxima > capacity[0].Capacidad_Actual ){
                         con.query('INSERT INTO inscripciones VALUES(?,?,?,?)',[userId,eventId,'inscrito',datetime],(err)=>{
@@ -275,8 +274,51 @@ router.post('/join/:id', function(req,res){
                     }
                 });
             }
-            else{
-                //YA ESTA INSCRITO
+            else{ // YA ESTA EN LA BD
+                con.query('SELECT Capacidad_Maxima, Capacidad_Actual FROM eventos WHERE ID = ?',[eventId], (err,capacity)=>{
+                    if(err){
+                        con.release();
+                        throw err;
+                    }
+                    const now = new Date();
+
+                    const year = now.getFullYear();
+                    const month = String(now.getMonth() + 1).padStart(2, '0');
+                    const day = String(now.getDate()).padStart(2, '0');
+
+                    const hours = String(now.getHours()).padStart(2, '0');
+                    const minutes = String(now.getMinutes()).padStart(2, '0');
+                    const seconds = String(now.getSeconds()).padStart(2, '0');
+
+                    
+                    const datetime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+                    if(capacity[0].Capacidad_Maxima > capacity[0].Capacidad_Actual ){
+                        con.query('UPDATE inscripciones SET activo = true, Fecha = ?, Estado_Inscripcion = ?  WHERE Usuario_ID = ?',[datetime,'inscrito',userId],(err)=>{
+                            if(err){
+                                con.release();
+                                throw err;
+                            }
+                            con.query('UPDATE eventos SET Capacidad_Actual = ? WHERE ID = ?' , [capacity[0].Capacidad_Actual + 1, eventId], (err)=>{
+                                if(err){
+                                    con.release();
+                                    throw err;
+                                }
+                                con.release();
+                                res.redirect("/viewEvents");
+                            });
+                        });
+                    }
+                    else{
+                        con.query('UPDATE inscripciones SET activo = true, Fecha = ?, Estado_Inscripcion = ?  WHERE Usuario_ID = ?',[datetime,'lista de espera',userId],(err)=>{
+                            if(err){
+                                con.release();
+                                throw err;
+                            }
+                            con.release();
+                            res.redirect("/viewEvents");
+                        });
+                    }
+                });
             }
         });
         
@@ -291,7 +333,7 @@ router.post('/leave/:id', function(req,res){
             con.release();
             throw error;
         }
-        con.query('SELECT Estado_Inscripcion FROM inscripciones WHERE Usuario_ID = ? AND Evento_ID = ?', [userId,eventId], (err,state)=>{
+        con.query('SELECT Estado_Inscripcion FROM inscripciones WHERE Usuario_ID = ? AND Evento_ID = ? AND activo = true', [userId,eventId], (err,state)=>{
             if(err){
                 con.release();
                 throw error;
@@ -308,7 +350,7 @@ router.post('/leave/:id', function(req,res){
                                 con.release();
                                 throw err;
                             }
-                            con.query('SELECT Evento_ID, Usuario_ID FROM inscripciones WHERE Estado_Inscripcion = ? ORDER BY Fecha_Inscripcion ASC' , ['lista de espera'], (err,waitList)=>{
+                            con.query('SELECT Evento_ID, Usuario_ID FROM inscripciones WHERE Estado_Inscripcion = ? AND activo = true ORDER BY Fecha_Inscripcion ASC' , ['lista de espera'], (err,waitList)=>{
                                 if(err){
                                     con.release();
                                     throw err;
@@ -338,7 +380,7 @@ router.post('/leave/:id', function(req,res){
                         });
                     }
                     else{
-                        con.query('DELETE FROM inscripciones WHERE Usuario_ID = ? AND Evento_ID = ?', [userId,eventId], (err)=>{
+                        con.query('UPDATE inscripciones SET activo = false WHERE Usuario_ID = ? AND Evento_ID = ?', [userId,eventId], (err)=>{
                             if(err){
                                 con.release();
                                 throw err;
