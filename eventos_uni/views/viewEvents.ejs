@@ -10,6 +10,35 @@
 
   <div class="container mt-5" >
     <div id="createdAlert"></div>
+    <form id="filterForm" class="mb-4">
+      <div class="row">
+        <div class="col-md-3">
+          <label for="filterType" class="form-label">Tipo de Evento</label>
+          <select id="filterType" name="filterType" class="form-select">
+            <option value="">Todos</option>
+            <option value="seminario">Seminario</option>
+            <option value="taller">Taller</option>
+            <option value="conferencia">Conferencia</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label for="filterDate" class="form-label">Fecha</label>
+          <input type="date" id="filterDate" name="filterDate" class="form-control">
+        </div>
+        <div class="col-md-3">
+          <label for="filterLocation" class="form-label">Facultad</label>
+          <select id="filterLocation" name="filterLocation" class="form-select">
+            <option value="">Todas</option>
+            <% locations.forEach(location => { %>
+              <option value="<%= location.Nombre %>"><%= location.Nombre %></option>
+            <% }); %>
+          </select>
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+          <button type="submit" class="btn btn-accesibilidad w-100">Buscar</button>
+        </div>
+      </div>
+    </form>
     <h1 class="text-center mb-4">Lista de Eventos</h1>
 
    

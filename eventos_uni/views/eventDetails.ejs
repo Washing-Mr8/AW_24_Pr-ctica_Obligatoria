@@ -16,7 +16,7 @@
                         <h2 class="mb-0">Detalles del Evento</h2>
                     </div>
                     <div class="card-body">
-                        <h3 class="mb-3 text-primary"><%= event[0].Titulo %></h3>
+                        <h3 class="mb-3"><%= event[0].Titulo %></h3>
                         <p><i class="bi bi-card-text"></i> <strong>Descripción:</strong> <%= event[0].Descripcion %></p>
                         <p><i class="bi bi-calendar-event"></i> <strong>Fecha:</strong> <%= new Date(event[0].Fecha).toISOString().split('T')[0] %> <strong>Hora:</strong> <%= event[0].Hora %></p>
                         <p><i class="bi bi-clock"></i> <strong>Duración:</strong> <%= event[0].Duracion %></p>

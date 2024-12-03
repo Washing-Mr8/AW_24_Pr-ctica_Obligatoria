@@ -101,6 +101,7 @@ $(document).ready(function () {
                     <p class="mb-2"><strong>Tipo de Evento:</strong> ${newEvent.Tipo}</p>
                     <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editEventModal${newEvent.ID}">Editar Evento</button>
                     <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteEventModal${newEvent.ID}">Eliminar Evento</button>
+                    <a class="btn btn-info btn-sm" href="/viewEvents/showDetails/${newEvent.ID}">Ver participantes</a>
                   </li>
                 `
                 //inserta el evento en el ejs
@@ -370,8 +371,49 @@ $(document).ready(function () {
           }
       });
     });
+
+    document.getElementById('filterForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const type = document.getElementById('filterType').value;
+      const date = document.getElementById('filterDate').value;
+      const location = document.getElementById('filterLocation').value;
+      
+      $.ajax({
+        url: `/viewEvents/filter?type=${type}&date=${date}&location=${location}`,
+        method: `GET`,
+        success: function(response) {
+          if (response.success) {
+            $('#eventList').html("");
+            events = response.events;
+            events.forEach(Event => {
+                const eventHtml = `
+                  <li class="list-group-item mb-3" id="event-${Event.ID}">
+                    <h4 class="mb-1">${Event.Titulo}</h4>
+                    <p class="mb-2"><strong>Descripción:</strong> ${Event.Descripcion}</p>
+                    <p class="mb-2"><strong>Fecha:</strong> ${new Date(Event.Fecha).toISOString().split('T')[0]} <strong>Hora:</strong> ${Event.Hora}</p>
+                    <p class="mb-2"><strong>Duración:</strong> ${Event.Duracion}</p>
+                    <p class="mb-2"><strong>Ubicación:</strong> ${Event.Facultad}: ${Event.Ubicacion}</p>
+                    <p class="mb-1"><strong>Capacidad:</strong> ${Event.Capacidad_Actual} / ${Event.Capacidad_Maxima} personas</p>
+                    <p class="mb-2"><strong>Tipo de Evento:</strong> ${Event.Tipo}</p>
+                    <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editEventModal${Event.ID}">Editar Evento</button>
+                    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteEventModal${Event.ID}">Eliminar Evento</button>
+                    <a class="btn btn-info btn-sm" href="/viewEvents/showDetails/${Event.ID}">Ver participantes</a>
+                  </li>
+                `
+                //inserta el evento en el ejs
+                $('#eventList').prepend(eventHtml);
+            });
+          } else {
+              showAlert('Hubo un problema al buscar', 'danger', '#createdAlert');
+          }
+      },
+      error: function() {
+        showAlert('Hubo un problema al buscar', 'danger', '#createdAlert');
+      }
+    });
   
   });
+});
 
   
 

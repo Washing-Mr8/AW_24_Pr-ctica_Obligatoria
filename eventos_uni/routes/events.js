@@ -472,6 +472,70 @@ router.get('/showDetails/:id',verificarSesion ,function(req, res, next) {
 });
 
 
+router.get('/filter',verificarSesion ,function(req, res, next) {
+    idUser = req.session.userId;
+    const { type, date, location } = req.query;
+
+    
+    let queryExtras = '';
+    let extraParams = [];
+
+    if (type) {
+        queryExtras += ' AND tipo = ?';
+        extraParams.push(type);
+    }
+    if (date) {
+        queryExtras += ' AND Fecha = ?';
+        extraParams.push(date);
+    }
+    if (location) {
+        queryExtras += ' AND facultad = ?';
+        extraParams.push(location);
+    }
+
+
+    pool.getConnection(function(error,con){
+        if(error){
+            con.release();
+            return res.status(500).send({ success: false, message: 'Error al cargar eventos' });
+        }
+        con.query('SELECT Rol FROM usuarios WHERE ID = ?', [idUser], (err,user) =>{
+            if(user[0].Rol == "organizador"){
+                extraParams.unshift(idUser);
+                con.query('SELECT * FROM eventos WHERE Organizador_ID = ? AND activo = true' + queryExtras, extraParams,(err,eventList)=>{
+                    if(err) throw err;
+                    con.query('SELECT * FROM facultades',(err,locationList)=>{
+                        if(err) throw err;
+                        con.release();
+                        return res.json({ success: true,events:eventList, locations:locationList , user:user}); 
+                    });
+                });
+            }
+            else{
+                con.query('SELECT * FROM eventos WHERE activo = true' + queryExtras,[extraParams],(err,eventList) =>{
+                    if(err) throw err;
+                    con.query('SELECT * FROM facultades',(err,locationList)=>{
+                        if(err) throw err;
+                        con.query('SELECT * FROM inscripciones WHERE Usuario_ID = ? AND activo = true',[idUser],(err,stateList)=>{
+                            if(err) throw err;
+                            var map = new Map();
+                            stateList.forEach(element => {
+                                map.set(element.Evento_ID,element.Estado_Inscripcion);
+                            });
+                            con.release();
+                            return res.json({ success: true,events:eventList, locations:locationList , user:user,stateList:map }); 
+                        });
+                    });
+                });
+            }
+    
+        });
+    });
+    
+   
+});
+
+
 
 function checkTime(events,eventTime,eventDuration){
     canInsert = true;
