@@ -290,16 +290,119 @@ router.post('/editarPerfil', function (req, res) {
         return res.status(500).render('error', { message: 'Error al obtener los datos del usuario.' });
       }
 
-      const currentUser = user[0];
+      var currentNombre = user[0].Nombre;
+      var currentCorreo = user[0].Correo;
+      var currenttelefono = user[0].Telefono;
+      var currentFacultadID = user[0].Facultad_ID;
 
-      con.query('', editFacultad, (err, facultadID) => {
+      con.query('SELECT ID FROM facultades WHERE Nombre = ?', [editFacultad], (err, facultadID) => {
+        if (err) {
+          con.release();
+          console.error('Error al acceder a las facultades:', err);
+          return res.status(500).json({ mesagge: 'Error al acceder a las facultades.' });
+        }
 
+        if (currentFacultadID !== facultadID[0]) {
+          currentFacultadID = facultadID[0];
+        }
+        if (currentNombre !== editNombre) {
+          currentNombre = editNombre
+        }
+        if (currentCorreo !== editCorreo) {
+          currentNombre = editNombre
+        }
+        if (currenttelefono !== editTelefono) {
+          currentNombre = editNombre
+        }
+
+        con.query('UPDATE Usuarios SET Nombre = ?, SET Correo = ?, SET Telefono = ?, SET Facultades_ID = ? WHERE ID = ? ',
+          [currentNombre, currentCorreo, currenttelefono, currentFacultadID, req.session.userId], (err, result) => {
+            con.release();
+
+            if (err) {
+              console.error('Error al editar el perfil', err);
+              return res.status(500).json({ mesagge: 'Error al editar el perfil' });
+            }
+
+            return res.json({success:true, message:"Perfil editado con exito"});
+          });
       });
-
     });
+  });
+});
 
+router.get('/resetPassword',function(req,res){
+  let correo = "";
+  let name = "notLogged";
+  let isLogged = false;
+  let isAdmin = false;
+
+
+  if (req.session.role) {
+    isLogged = true;
+    name = req.session.name;
+    correo = req.session.correo;
+    if (req.session.role === 'organizador') {
+      isAdmin = true;
+    }
+  }
+
+  return res.render('resetPassword',{title:"Recuperación de Contraseña",isLogged: isLogged, isAdmin: isAdmin, username:name, email:correo });
+});
+
+router.post('/resetPassword',function(req,res){
+  const {correo, newPassword} = req.body;
+  //comprobar si la password es igual a la que ya tenía
+  pool.getConnection((err,con)=>{
+    if (err) {
+      console.error('Error al intentar acceder a la base de datos:', err);
+      return res.status(500).json({ message: 'Error al acceder a la base de datos' });
+    }
+
+    con.query('SELECT Password FROM Usuarios WHERE ID = ?',[req.session.userId],(err,currentPassword)=>{
+      if (err) {
+        con.release();
+        console.error('Error al intentar obtener la contraseña:', err);
+        return res.status(500).json({ message: 'Error al intentar obtener la contraseña' });
+      }
+
+      bcrypt.compare(newPassword, currentPassword[0], (err, result) => {
+        if (err) {
+          con.release(),
+          console.error('Error al comparar contraseñas:', err);
+          return res.status(500).json({ message: 'Error al comparar contraseñas' });
+        }
+
+        if(result){
+          con.release(),
+          console.error('La contraseña es la mismma!', err);
+          return res.status(500).json({ message: 'La contraseña es igual que la anterior' });
+        }else{
+
+          bcrypt.hash(registerPassword, SALT_ROUNDS, (err, hashedPassword) => {
+            if (err) {
+              con.release();
+              console.error('Error al hashear la nueva contraseña:', err);
+              return res.status(500).json({ mesagge: 'Error al hashear la nueva contraseña.' });
+            }
+
+            con.query('UPDATE Usuarios SET Password = ? WHERE Correo = ?',[hashedPassword, correo], (err) => {
+              con.release();
+
+              if (err) {
+                console.error('Error al cambiar la contraseña:', err);
+                return res.status(500).json({ mesagge: 'Error al cambiar la contraseña' });
+              }
+
+              return res.json({ success: true, message: 'Contraseña cambiada correctamente' });
+            });
+          });
+        }
+      });
+    });
   });
 
+  
 });
 
 router.get('/:year?/:month?', verificarSesion, function (req, res, next) {

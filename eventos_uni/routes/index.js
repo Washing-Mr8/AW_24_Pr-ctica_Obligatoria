@@ -7,15 +7,18 @@ router.get('/', function (req, res, next) {
 
   let isLogged = false;
   let isAdmin = false;
+  let name = "notLogged";
 
   if(req.session.role){
     isLogged = true;
+    name = req.session.name;
+
     if(req.session.role === 'organizador'){
       isAdmin = true;
     }
   }
 
-  res.render('index', { title: 'OrgaNice', isLogged:isLogged, isAdmin:isAdmin, username:"notlogged"});
+  res.render('index', { title: 'OrgaNice', isLogged:isLogged, isAdmin:isAdmin, username:name});
 });
 
 module.exports = router;
