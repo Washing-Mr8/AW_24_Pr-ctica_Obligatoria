@@ -67,7 +67,8 @@
                             <ul class="list-group mb-3">
                                 <% comments.forEach(comment => { %>
                                     <li class="list-group-item">
-                                        <p class="mb-1"><strong><%= comment.ID %>:</strong></p>
+                                        <%console.log(userNames)%>
+                                        <p class="mb-1"><strong><%= userNames.get(comment.Usuario_ID) %>:</strong></p>
                                         <p class="mb-0"><i>"<%= comment.mensaje %>"</i></p>
                                         <p class="text-muted small">Valoración: <%= comment.valoracion %> estrellas</p>
                                     </li>
@@ -84,5 +85,6 @@
 
     <%- include("fragments/footer") %>
     <script src="/javascripts/events.js"></script>
+    <script src="/javascripts/notificationes.js"></script>
 </body>
 </html>

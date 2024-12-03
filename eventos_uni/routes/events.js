@@ -464,7 +464,7 @@ router.get('/showDetails/:id',verificarSesion ,function(req, res, next) {
                             con.release();
                             return res.status(500).send({ success: false, message: 'Error al mandar comentario' });
                         }
-                        con.query("SELECT Nombre,ID FROM usuarios WHERE ID = ?",[req.session.userId],(err,users)=>{
+                        con.query("SELECT Nombre,ID FROM usuarios",(err,users)=>{
                             if(err){
                                 con.release();
                                 return res.status(500).send({ success: false, message: 'Error al mandar comentario' });

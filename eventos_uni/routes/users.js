@@ -405,7 +405,24 @@ router.post('/resetPassword',function(req,res){
   
 });
 
-router.get('/:year?/:month?', verificarSesion, function (req, res, next) {
+router.get('/notifications',function(req,res){
+  pool.getConnection(function (error, con) {
+    if (error) {
+      con.release();
+      return res.status(500).json({ message: 'Error al cargar notificaciones' });
+    }
+    con.query('SELECT mensaje FROM notificaciones WHERE idUSuario = ? LIMIT 5',[req.session.userId],(err,messages)=>{
+      if (err) {
+        con.release();
+        return res.status(500).json({ message: 'Error al cargar notificaciones' });
+      }
+      return res.json({ success: true, notifications: messages });
+    }
+  );
+  });
+});
+
+router.get('/', verificarSesion, function (req, res, next) {
   pool.getConnection(function (error, con) {
     if (error) {
       con.release();

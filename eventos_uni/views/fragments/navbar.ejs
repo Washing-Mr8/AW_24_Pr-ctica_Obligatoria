@@ -55,8 +55,7 @@
         
                              <!-- Boton que activa el menu de Accesibilidad -->
                              <div class="navbar-nav">
-                                <button class="index btn btn-accesibilidad outline " data-bs-toggle="modal"
-                                    data-bs-target="#menuAccesibilidad"> <i class="fa-solid fa-bell"></i>
+                                <button class="index btn btn-info outline"  id="notificationsButton"> <i class="fa-solid fa-bell"></i>
                                     Notificaciones</button>
                             </div>
 
@@ -82,6 +81,27 @@
         </nav>
 
     </header>
+    <!-- Modal de Notificaciones -->
+<div class="modal fade" id="notificationsModal" tabindex="-1" aria-labelledby="notificationsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="notificationsModalLabel">Notificaciones</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div id="notificationsContent">
+                    <p class="text-muted text-center">Cargando notificaciones...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
 </body>
 
 </html>
