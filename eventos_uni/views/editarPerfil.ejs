@@ -2,16 +2,18 @@
 <html>
 
 <head>
-  <%- include("head") %>
+  <%- include("fragments/head") %>
     <link rel="stylesheet" href="/stylesheets/login.css" type="text/css">
 </head>
 
 <body class="default" data-bs-theme="dark">
-  <%- include("navbar") %>
+  <%- include("fragments/navbar") %>
+  <%- include("fragments/accesibilidad") %>
+
 
     <div class="container">
 
-      <form class="form-signin" method="post" action="/user/register">
+      <form class="form-signin" method="post" action="/user/editarPerfil">
         <h2 class="form-signin-heading text-center">Editar Perfil</h2>
 
 
@@ -62,17 +64,22 @@
 
 
         <div class="text-center mt-3">
-          <button id="registerButton" class="btn btn-accesibilidad outline  btn-lg" type="submit" disabled>
-            <i class="fa-regular fa-clipboard"></i> Registrar</button>
+          <button id="registerButton" class="btn btn-accesibilidad btn-lg" type="submit">
+            <i class="fa-solid fa-pen-to-square"></i> Editar</button>
         </div>
 
       </form>
+
+      <!-- Texto para animar al usuario a registrarse -->
+      <div class="text-center mt-3">
+        <a class="register-text" href="/user/register">¿Quieres cambiar la contraseña? pulsa este enlace.</a>
+      </div>
 
       <div id="createdAlert"></div>
 
     </div>
 
-    <%- include("footer") %>
+    <%- include("fragments/footer") %>
       <script src="/javascripts/registro.js"></script>
 </body>
 

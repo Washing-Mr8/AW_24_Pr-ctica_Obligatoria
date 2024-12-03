@@ -110,3 +110,16 @@ a {
   color: #dc3545; 
   font-weight: bold;
 }
+
+
+.card {
+  border: none;
+  border-radius: 10px;
+  transition: 0.2s;
+  background: #00000000;
+}
+
+
+.card:hover {
+  transform: scale(1.05);
+}

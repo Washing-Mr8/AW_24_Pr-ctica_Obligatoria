@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <%- include("head")%>
+    <%- include("fragments/head")%>
 </head>
 <body class="<%= theme %> <%= fontSize %>" data-bs-theme="<%= theme === 'default' ? 'dark' : theme %>"  data-theme="<%= theme %>" data-font-size="<%= fontSize %>">
-    <%- include("navbar") %>
+    <%- include("fragments/navbar") %>
 
-    <%- include("accesibilidad") %>
+    <%- include("fragments/accesibilidad") %>
   <div class="container mt-5">
     <div class="row">
       <div class="col-md-8">
@@ -38,7 +38,7 @@
       </div>
     </div>
   </div>
-  <%- include("footer") %>
+  <%- include("fragments/footer") %>
   <script src="/javascripts/events.js"></script>
 </body>
 </html>

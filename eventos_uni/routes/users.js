@@ -182,6 +182,7 @@ router.post('/login', function (req, res) {
 
         // Guardar el usuario en la sesión
         req.session.userId = usuario.ID;
+        req.session.name = usuario.Nombre;
         req.session.correo = usuario.Correo;
         req.session.role = usuario.Rol
 
@@ -202,47 +203,6 @@ router.get('/logout', function (req, res) {
   });
 });
 
-
-/* GET users listing. */
-
-
-/*
-router.get("/accesibilidad", function (req, res, next) {
-  pool.getConnection(function (error, con) {
-    if (error) {
-      con.release();
-      throw error;
-    }
-    con.query('SELECT Configuraciones_ID FROM usuarios WHERE ID = ? ', [req.session.userId], (err, id_config) => {
-      if (err) {
-        console.error('Error al obtener el usuario:', err);
-        con.release();
-        return res.status(500).render('error', { mensaje: 'Error al obtener los datos del usuario.' });
-      }
-
-      if (user.length === 0) {
-        return res.status(404).render('error', { mensaje: 'Usuario no encontrado.' });
-      }
-
-      con.query('SELECT Paleta_Colores,Tamano_Texto FROM configuracion_accesibilidad WHERE ID = ?', [id_config], (err, config) => {
-        if (err) {
-          console.error('Error al obtener las configuraciones de accesibilidad:', err);
-          return res.status(500).render('error', { mensaje: 'Error en el servidor.' });
-        }
-        const accesibilidad = config[0];
-
-        const theme = config[0].Paleta_Colores;
-        const font = config[0].Tamano_Texto;
-
-        con.release();
-        console.log("configuracion de accesibilidad obtenida con exito");
-        res.json({ theme: theme, font: font });
-
-      });
-    });
-  });
-});
-*/
 
 router.post('/accesibilidad', function (req, res, next) {
   if (!req.session.userId) {

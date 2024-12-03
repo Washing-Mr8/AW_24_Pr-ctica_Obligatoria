@@ -2,13 +2,14 @@
 <html>
 
 <head>
-  <%- include("head") %>
+  <%- include("fragments/head") %>
 </head>
 
 <body class="default" data-bs-theme="dark">
   <header>
-    <%- include("navbar") %>
+    <%- include("fragments/navbar") %>
   </header>
+  <%- include("fragments/accesibilidad") %>
 
     <div class="main-container">
       <h1>
@@ -35,7 +36,7 @@
       </h3>
 
     </div>
-    <%- include("footer") %>
+    <%- include("fragments/footer") %>
 </body>
 
 </html>

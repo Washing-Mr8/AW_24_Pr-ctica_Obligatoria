@@ -15,7 +15,7 @@ router.get('/', function (req, res, next) {
     }
   }
 
-  res.render('index', { title: 'OrgaNice', isLogged:isLogged, isAdmin:isAdmin});
+  res.render('index', { title: 'OrgaNice', isLogged:isLogged, isAdmin:isAdmin, username:"notlogged"});
 });
 
 module.exports = router;

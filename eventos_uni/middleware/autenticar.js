@@ -7,6 +7,7 @@ function verificarSesion(req, res, next) {
 
     if (req.session.userId) {
         res.locals.isLogged = true;
+        res.locals.username = req.session.name;
 
         // Comprobamos si es administrador
         if (req.session.role === 'organizador') {
