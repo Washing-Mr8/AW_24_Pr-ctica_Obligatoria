@@ -186,6 +186,7 @@ $(document).ready(function () {
                               <textarea id="editEventDescription${newEvent.ID}" name="eventDescription" class="form-control" rows="3" required>${newEvent.Descripcion}</textarea>
                             </div>
                             <button type="submit" class="btn btn-accesibilidad">Guardar Cambios</button>
+                            <div id="editAlert"></div>
                           </form>
                         </div>
                       </div>
@@ -270,7 +271,7 @@ $(document).ready(function () {
       }
   
       if (formData.eventCapacity <= 0 || formData.eventDuration <= 0) {
-          showAlert('La capacidad y duración deben ser mayores a 0.', 'danger', '#editAlert');
+          alert('Hubo un problema al editar.'); 
           return;
       }
   

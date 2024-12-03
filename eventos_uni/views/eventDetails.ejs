@@ -1,44 +1,63 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <%- include("fragments/head")%>
+    <%- include("fragments/head") %>
 </head>
-<body class="<%= theme %> <%= fontSize %>" data-bs-theme="<%= theme === 'default' ? 'dark' : theme %>"  data-theme="<%= theme %>" data-font-size="<%= fontSize %>">
+<body class="<%= theme %> <%= fontSize %>" data-bs-theme="<%= theme === 'default' ? 'dark' : theme %>" data-theme="<%= theme %>" data-font-size="<%= fontSize %>">
     <%- include("fragments/navbar") %>
-
     <%- include("fragments/accesibilidad") %>
-  <div class="container mt-5">
-    <div class="row">
-      <div class="col-md-8">
-        <h2 class="mb-4">Detalles del Evento: <%= event.Titulo %></h2>
-        
-        <p class="mb-2"><strong>Descripción:</strong> <%= event.Descripcion %></p>
-        <p class="mb-2"><strong>Fecha:</strong> <%= new Date(event.Fecha).toISOString().split('T')[0] %> <strong>Hora:</strong> <%= event.Hora %></p>
-        <p class="mb-2"><strong>Duración:</strong> <%= event.Duracion %></p>
-        <p class="mb-2"><strong>Ubicación:</strong> <%= event.facultad %>: <%= event.Ubicacion %></p>
-        <p class="mb-1"><strong>Capacidad:</strong> <%= event.Capacidad_Actual %> / <%= event.Capacidad_Maxima %> personas</p>
-        <p class="mb-2"><strong>Tipo de Evento:</strong> <%= event.tipo %></p>
 
-        <div class="col-md-4">
-        <h3>Participantes</h3>
-        <ul class="list-group">
-          <% event.participantes.forEach(participante => { %>
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              <%= participante.nombre %>
-              <span class="badge badge-primary">
-                <% if(participante.inscrito) { %>
-                  Inscrito
-                <% } else { %>
-                  Lista de espera
-                <% } %>
-              </span>
-            </li>
-          <% }); %>
-        </ul>
-      </div>
+    <div class="container mt-5">
+        <div class="row">
+            <!-- Detalles del Evento -->
+            <div class="col-md-6 mb-4">
+                <div class="card shadow">
+                    <div class="card-header bg-info text-white">
+                        <h2 class="mb-0">Detalles del Evento</h2>
+                    </div>
+                    <div class="card-body">
+                        <h3 class="mb-3 text-primary"><%= event[0].Titulo %></h3>
+                        <p><i class="bi bi-card-text"></i> <strong>Descripción:</strong> <%= event[0].Descripcion %></p>
+                        <p><i class="bi bi-calendar-event"></i> <strong>Fecha:</strong> <%= new Date(event[0].Fecha).toISOString().split('T')[0] %> <strong>Hora:</strong> <%= event[0].Hora %></p>
+                        <p><i class="bi bi-clock"></i> <strong>Duración:</strong> <%= event[0].Duracion %></p>
+                        <p><i class="bi bi-geo-alt"></i> <strong>Ubicación:</strong> <%= event[0].facultad %>: <%= event[0].Ubicacion %></p>
+                        <p><i class="bi bi-people"></i> <strong>Capacidad:</strong> <%= event[0].Capacidad_Actual %> / <%= event[0].Capacidad_Maxima %> personas</p>
+                        <p><i class="bi bi-tag"></i> <strong>Tipo de Evento:</strong> <%= event[0].tipo %></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Participantes -->
+            <div class="col-md-6">
+                <div class="card shadow">
+                    <div class="card-header bg-success text-white">
+                        <h3 class="mb-0">Participantes</h3>
+                    </div>
+                    <div class="card-body">
+                        <% if (users.size > 0) { %>
+                            <ul class="list-group">
+                                <% users.forEach((user, key) => { %>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <%= user[0] %> <!-- Nombre del participante -->
+                                        <%if(user[1] == "inscrito"){%>
+                                          <span class="badge bg-success"> inscrito </span> 
+                                        <%}else{%>
+                                          <span class="badge bg-info"> lista de espera </span>
+                                        <%}%>
+                                        
+                                    </li>
+                                <% }); %>
+                            </ul>
+                        <% } else { %>
+                            <p class="text-muted">No hay participantes registrados.</p>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-  <%- include("fragments/footer") %>
-  <script src="/javascripts/events.js"></script>
+
+    <%- include("fragments/footer") %>
+    <script src="/javascripts/events.js"></script>
 </body>
 </html>

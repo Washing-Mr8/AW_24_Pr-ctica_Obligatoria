@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <%- include("head")%>
+  <%- include("fragments/head")%>
 </head>
 <body class="<%= theme %> <%= fontSize %>" data-bs-theme="<%= theme === 'default' ? 'dark' : theme %>"  data-theme="<%= theme %>" data-font-size="<%= fontSize %>">
-  <%- include("navbar") %>
+  <%- include("fragments/navbar") %>
 
-  <%- include("accesibilidad") %>
+  <%- include("fragments/accesibilidad") %>
 
   <div class="container mt-5" >
     <div id="createdAlert"></div>
@@ -26,7 +26,7 @@
             <% if(user[0].Rol == "organizador"){%>
               <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editEventModal<%= event.ID %>">Editar Evento</button>
               <button class="btn btn-danger btn-sm"  data-bs-toggle="modal" data-bs-target="#deleteEventModal<%= event.ID%>">Eliminar Evento</button>
-              <button class="btn btn-info btn-sm" href="/viewEvents/showDetails/<%= event.ID%>">Ver participantes</button>
+              <a class="btn btn-info btn-sm" href="/viewEvents/showDetails/<%= event.ID%>">Ver participantes</a>
             <% }else{ %>
               <p class="mb-3"><strong>Esta de la inscripción:</strong> 
                 <% if(stateList.has(event.ID)){%>
@@ -253,7 +253,7 @@
     </div>
     <% }); %>
 
-  <%- include("footer") %>
+  <%- include("fragments/footer") %>
   <script src="/javascripts/events.js"></script>
 </body>
 </html>

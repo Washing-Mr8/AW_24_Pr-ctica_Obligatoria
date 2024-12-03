@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <%- include("fragments/head") %>
+    <link rel='stylesheet' href='/stylesheets/calendar.css' type="text/css" />
+</head>
+
+<body class="<%= theme %> <%= fontSize %>" data-bs-theme="<%= theme === 'default' ? 'dark' : theme %>"  data-theme="<%= theme %>" data-font-size="<%= fontSize %>">
+
+<!-- <body class="default" data-bs-theme="dark"> -->
+    <header>
+        <%- include("fragments/navbar") %>
+    </header>
+    <%- include("fragments/accesibilidad") %>
+
+    <div class="main-container">
+        <h1>Calendario de <%= new Date(currentYear, currentMonth).toLocaleString("es", { month: "long", year: "numeric" }) %></h1>
+        <div class="calendar">
+            <% 
+                const daysOfWeek = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+                const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+                const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+                const adjustedFirstDay = firstDay === 0 ? 6 : firstDay - 1;
+
+                daysOfWeek.forEach(day => { 
+            %>
+                <div class="day header"><%= day %></div>
+            <% }); %>
+
+            <% 
+                for (let i = 0; i < adjustedFirstDay; i++) { 
+            %>
+                <div class="day"></div>
+            <% } %>
+                
+            <% 
+                for (let day = 1; day <= daysInMonth; day++) { 
+                    const currentDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    const dayEvents = events.filter(event => new Date(event.Fecha).toISOString().split('T')[0] === currentDate);
+            %>
+            <div class="day <%= currentDate === new Date().toISOString().split("T")[0] ? "today bg-success" : "" %>">
+                <strong class="d-block text-center mb-2"><%= day %></strong>
+                <div class="events"> 
+                    <% if (dayEvents.length > 0) { %>
+                        <% dayEvents.forEach(event => { %>
+                            <div class="card mb-2">
+                                <div class="card-body p-2">
+                                    <h6 class="card-title mb-1 text-truncate"><%= event.Titulo %></h6>
+                                    <p class="card-text mb-0">
+                                        <small><i class="bi bi-clock"></i> <%= event.Hora %></small><br>
+                                        <small><i class="bi bi-people"></i> <%= event.Capacidad_Actual %> / <%= event.Capacidad_Maxima %></small>
+                                    </p>
+                                </div>
+                            </div>
+                        <% }); %>
+                    <% } else { %>
+                        <p class="text-muted small text-center">Sin eventos</p>
+                    <% } %>
+                </div>
+            </div>
+            <% } %>
+        </div>
+        <div class="calendar-navigation">
+            <% 
+                const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+                const nextMonth = currentMonth === 11 ? 0 : currentMonth + 1;
+                const previousYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+                const nextYear = currentMonth === 11 ? currentYear + 1 : currentYear;
+            %>
+        
+            <a href="/calendar/<%= previousYear %>/<%= previousMonth %>" class="nav-arrow">&laquo; Anterior</a>
+            <a href="/calendar/<%= nextYear %>/<%= nextMonth %>" class="nav-arrow">Siguiente &raquo;</a>
+        </div>
+
+    </div>
+    <%- include("fragments/footer") %>
+</body>
+
+</html>

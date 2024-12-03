@@ -6,33 +6,41 @@ const verificarSesion = require('../middleware/autenticar');
 
 router.get('/',verificarSesion ,function(req, res, next) {
     idUser = req.session.userId;
-    pool.query('SELECT Rol FROM usuarios WHERE ID = ?', [idUser], (err,user) =>{
-        if(user[0].Rol == "organizador"){
-            pool.query('SELECT * FROM eventos WHERE Organizador_ID = ? AND activo = true', [idUser],(err,eventList)=>{
-                if(err) throw err;
-                pool.query('SELECT * FROM facultades',(err,locationList)=>{
-                    if(err) throw err;
-                    res.render('viewEvents', { title: 'Events', events:eventList, locations:locationList , user:user});
-                });
-            });
+    pool.getConnection(function(error,con){
+        if(error){
+            con.release();
+            return res.status(500).send({ success: false, message: 'Error al cargar eventos' });
         }
-        else{
-            pool.query('SELECT * FROM eventos WHERE activo = true',(err,eventList) =>{
-                if(err) throw err;
-                pool.query('SELECT * FROM facultades',(err,locationList)=>{
+        con.query('SELECT Rol FROM usuarios WHERE ID = ?', [idUser], (err,user) =>{
+            if(user[0].Rol == "organizador"){
+                con.query('SELECT * FROM eventos WHERE Organizador_ID = ? AND activo = true', [idUser],(err,eventList)=>{
                     if(err) throw err;
-                    pool.query('SELECT * FROM inscripciones WHERE Usuario_ID = ? AND activo = true',[idUser],(err,stateList)=>{
+                    con.query('SELECT * FROM facultades',(err,locationList)=>{
                         if(err) throw err;
-                        var map = new Map();
-                        stateList.forEach(element => {
-                            map.set(element.Evento_ID,element.Estado_Inscripcion);
-                        });
-                        res.render('viewEvents', { title: 'Events', events:eventList, locations:locationList,user:user, stateList:map });
+                        con.release();
+                        res.render('viewEvents', { title: 'Events', events:eventList, locations:locationList , user:user});
                     });
                 });
-            });
-        }
-
+            }
+            else{
+                con.query('SELECT * FROM eventos WHERE activo = true',(err,eventList) =>{
+                    if(err) throw err;
+                    con.query('SELECT * FROM facultades',(err,locationList)=>{
+                        if(err) throw err;
+                        con.query('SELECT * FROM inscripciones WHERE Usuario_ID = ? AND activo = true',[idUser],(err,stateList)=>{
+                            if(err) throw err;
+                            var map = new Map();
+                            stateList.forEach(element => {
+                                map.set(element.Evento_ID,element.Estado_Inscripcion);
+                            });
+                            con.release();
+                            res.render('viewEvents', { title: 'Events', events:eventList, locations:locationList,user:user, stateList:map });
+                        });
+                    });
+                });
+            }
+    
+        });
     });
     
    
@@ -262,9 +270,10 @@ router.post('/join/:id', function(req,res){
                         });
                     }
                     else{
-                        con.query('INSERT INTO inscripciones VALUES(?,?,?,?)',[userId,eventId,'lista de espera',datetime],(err)=>{
+                        con.query('INSERT INTO inscripciones VALUES(?,?,?,?,?)',[userId,eventId,'lista de espera',datetime,true],(err)=>{
                             if(err){
                                 con.release();
+                                console.log(err);
                                 return res.status(500).send({ success: false, message: 'Error al ingresar a evento.' });
                             }
                             con.release();
@@ -338,45 +347,64 @@ router.post('/leave/:id', function(req,res){
                 return res.status(500).send({ success: false, message: 'Error al salirse de evento.' }); 
             }
             if(state.length != 0){
+              
                 con.query('SELECT Capacidad_Maxima, Capacidad_Actual FROM eventos WHERE ID = ?',[eventId], (err,capacity)=>{
                     if(err){
                         con.release();
                         return res.status(500).send({ success: false, message: 'Error al salirse de evento.' }); 
                     }
-                    if(capacity[0].Capacidad_Actual === capacity[0].Capacidad_Maxima){
-                        con.query('UPDATE inscripciones SET activo = false WHERE Usuario_ID = ? AND Evento_ID = ?', [userId,eventId], (err)=>{
-                            if(err){
-                                con.release();
-                                return res.status(500).send({ success: false, message: 'Error al salirse de evento.' }); 
-                            }
-                            con.query('SELECT Evento_ID, Usuario_ID FROM inscripciones WHERE Estado_Inscripcion = ? AND activo = true ORDER BY Fecha_Inscripcion ASC' , ['lista de espera'], (err,waitList)=>{
+                    if(state[0].Estado_Inscripcion == "inscrito"){
+                        if(capacity[0].Capacidad_Actual === capacity[0].Capacidad_Maxima){
+                            con.query('UPDATE inscripciones SET activo = false WHERE Usuario_ID = ? AND Evento_ID = ?', [userId,eventId], (err)=>{
                                 if(err){
                                     con.release();
                                     return res.status(500).send({ success: false, message: 'Error al salirse de evento.' }); 
                                 }
-                                if(waitList.length === 0){
-                                    con.query('UPDATE eventos SET Capacidad_Actual = ? WHERE ID = ?' , [capacity[0].Capacidad_Actual - 1,eventId], (err)=>{
-                                        if(err){
-                                            con.release();
-                                            return res.status(500).send({ success: false, message: 'Error al salirse de evento.' }); 
-                                        }
+                                con.query('SELECT Evento_ID, Usuario_ID FROM inscripciones WHERE Estado_Inscripcion = ? AND activo = true ORDER BY Fecha_Inscripcion ASC' , ['lista de espera'], (err,waitList)=>{
+                                    if(err){
                                         con.release();
-                                        return res.json({ success: true,actualCapacity : capacity[0].Capacidad_Actual - 1, totalCapacity : capacity[0].Capacidad_Maxima});                     
-                                   });
-                                }
-                                else{
-                                    con.query('UPDATE inscripciones SET Estado_Inscripcion = ? WHERE Usuario_ID = ? AND Evento_ID = ?' , ['inscrito',waitList[0].Usuario_ID,waitList[0].Evento_ID], (err)=>{
-                                        if(err){
+                                        return res.status(500).send({ success: false, message: 'Error al salirse de evento.' }); 
+                                    }
+                                    if(waitList.length === 0){
+                                        con.query('UPDATE eventos SET Capacidad_Actual = ? WHERE ID = ?' , [capacity[0].Capacidad_Actual - 1,eventId], (err)=>{
+                                            if(err){
+                                                con.release();
+                                                return res.status(500).send({ success: false, message: 'Error al salirse de evento.' }); 
+                                            }
                                             con.release();
-                                            return res.status(500).send({ success: false, message: 'Error al salirse de evento.' }); 
-                                        }
-                                        sentNotification(0,"Se ha actualizado tu puesto en la lista de espera",waitList,con);
-                                        con.release();
-                                        return res.json({ success: true,actualCapacity : capacity[0].Capacidad_Actual, totalCapacity : capacity[0].Capacidad_Maxima});                     
-                                    });
-                                }
+                                            return res.json({ success: true,actualCapacity : capacity[0].Capacidad_Actual - 1, totalCapacity : capacity[0].Capacidad_Maxima});                     
+                                       });
+                                    }
+                                    else{
+                                        con.query('UPDATE inscripciones SET Estado_Inscripcion = ? WHERE Usuario_ID = ? AND Evento_ID = ?' , ['inscrito',waitList[0].Usuario_ID,waitList[0].Evento_ID], (err)=>{
+                                            if(err){
+                                                con.release();
+                                                return res.status(500).send({ success: false, message: 'Error al salirse de evento.' }); 
+                                            }
+                                            sentNotification(0,"Se ha actualizado tu puesto en la lista de espera",waitList,con);
+                                            con.release();
+                                            return res.json({ success: true,actualCapacity : capacity[0].Capacidad_Actual, totalCapacity : capacity[0].Capacidad_Maxima});                     
+                                        });
+                                    }
+                                });
                             });
-                        });
+                        }
+                        else{
+                            con.query('UPDATE inscripciones SET activo = false WHERE Usuario_ID = ? AND Evento_ID = ?', [userId,eventId], (err)=>{
+                                if(err){
+                                    con.release();
+                                    return res.status(500).send({ success: false, message: 'Error al salirse de evento.' }); 
+                                }
+                                con.query('UPDATE eventos SET Capacidad_Actual = ? WHERE ID = ?' , [capacity[0].Capacidad_Actual - 1,eventId], (err)=>{
+                                    if(err){
+                                        con.release();
+                                        return res.status(500).send({ success: false, message: 'Error al salirse de evento.' }); 
+                                    }
+                                    con.release();
+                                    return res.json({ success: true,actualCapacity : capacity[0].Capacidad_Actual - 1, totalCapacity : capacity[0].Capacidad_Maxima});                     
+                                });
+                            });
+                        }
                     }
                     else{
                         con.query('UPDATE inscripciones SET activo = false WHERE Usuario_ID = ? AND Evento_ID = ?', [userId,eventId], (err)=>{
@@ -384,14 +412,8 @@ router.post('/leave/:id', function(req,res){
                                 con.release();
                                 return res.status(500).send({ success: false, message: 'Error al salirse de evento.' }); 
                             }
-                            con.query('UPDATE eventos SET Capacidad_Actual = ? WHERE ID = ?' , [capacity[0].Capacidad_Actual - 1,eventId], (err)=>{
-                                if(err){
-                                    con.release();
-                                    return res.status(500).send({ success: false, message: 'Error al salirse de evento.' }); 
-                                }
-                                con.release();
-                                return res.json({ success: true,actualCapacity : capacity[0].Capacidad_Actual - 1, totalCapacity : capacity[0].Capacidad_Maxima});                     
-                            });
+                            con.release();
+                            return res.json({ success: true,actualCapacity : capacity[0].Capacidad_Actual, totalCapacity : capacity[0].Capacidad_Maxima});      
                         });
                     }
                 });
@@ -401,6 +423,55 @@ router.post('/leave/:id', function(req,res){
         
     });
 });
+
+router.get('/showDetails/:id',verificarSesion ,function(req, res, next) {
+
+    pool.getConnection(function(error,con){
+        if(error){
+            con.release();
+            return res.status(500).send({ success: false, message: 'Error al mostrar evento.' }); 
+         }
+         con.query('SELECT Nombre,ID FROM usuarios WHERE Rol = ?',["asistente"],(err,users) =>{
+            if(err){
+                con.release();
+                console.log(err);
+                return res.status(500).send({ success: false, message: 'Error al mostrar evento.'}); 
+             }
+            con.query('SELECT Usuario_ID,Estado_Inscripcion FROM inscripciones WHERE activo = true AND Evento_ID = ?',[req.params.id],(err,userInEvent) =>{
+                if(err){
+                    con.release();
+                    return res.status(500).send({ success: false, message: 'Error al mostrar evento.'}); 
+                }
+                var map = new Map();
+                userInEvent.forEach(eventUser => {
+                    users.forEach(user => {
+                       if(eventUser.Usuario_ID === user.ID){
+                        Username = user.Nombre;
+                        userState = eventUser.Estado_Inscripcion;
+                        map.set(user.ID,[Username,userState]);
+                       }
+                    });
+                });
+                con.query('SELECT * FROM eventos WHERE activo = true AND ID = ?',[req.params.id],(err,eventData) =>{
+                    if(err){
+                        console.log(err);
+                        con.release();
+                        return res.status(500).send({ success: false, message: 'Error al mostrar evento.'}); 
+                    }
+                    
+                    con.release();
+                    res.render('eventDetails', { title: 'Event details', event:eventData,users:map });
+                });
+
+            });
+        });
+        
+       
+    });
+
+});
+
+
 
 function checkTime(events,eventTime,eventDuration){
     canInsert = true;

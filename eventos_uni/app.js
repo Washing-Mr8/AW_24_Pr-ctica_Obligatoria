@@ -31,6 +31,7 @@ app.use(session({
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var eventsRouter = require('./routes/events');
+var calendarRouter = require('./routes/calendar');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -47,6 +48,8 @@ app.use(checkBannedIP);
 app.use('/', indexRouter);
 app.use('/user', usersRouter);
 app.use('/viewEvents', eventsRouter);
+app.use('/calendar',calendarRouter);
+
 
 
 // catch 404 and forward to error handler

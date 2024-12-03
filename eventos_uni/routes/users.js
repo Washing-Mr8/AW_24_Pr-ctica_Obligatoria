@@ -282,22 +282,8 @@ router.get('/:year?/:month?', verificarSesion, function (req, res, next) {
       }
 
       con.query('SELECT * FROM eventos WHERE activo = true', (err, eventList) => {
-        date = new Date();
-        const year = parseInt(req.params.year) || new Date().getFullYear();
-        var month = new Date().getMonth();
-        if (req.params.month !== undefined)
-          month = parseInt(req.params.month)
-
-        pool.query('SELECT * FROM inscripciones WHERE Usuario_ID = ?', [req.session.userId], (err, stateList) => {
-          if (err) throw err;
-          var map = new Map();
-          stateList.forEach(element => {
-            map.set(element.Evento_ID, element.Estado_Inscripcion);
-          });
           con.release();
-          res.render('user', { title: user[0].Nombre, usuario: user[0], events: eventList, currentYear: year, currentMonth: month, stateList: map });
-        });
-
+          res.render('user', { title: user[0].Nombre, usuario: user[0], events: eventList});
       });
     });
 
