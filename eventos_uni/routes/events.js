@@ -23,7 +23,7 @@ router.get('/',verificarSesion ,function(req, res, next) {
                 });
             }
             else{
-                con.query('SELECT * FROM eventos WHERE activo = true',(err,eventList) =>{
+                con.query('SELECT * FROM eventos WHERE activo = true AND Fecha > CURDATE()',(err,eventList) =>{
                     if(err) throw err;
                     con.query('SELECT * FROM facultades',(err,locationList)=>{
                         if(err) throw err;
@@ -512,7 +512,7 @@ router.get('/filter',verificarSesion ,function(req, res, next) {
                 });
             }
             else{
-                con.query('SELECT * FROM eventos WHERE activo = true' + queryExtras,[extraParams],(err,eventList) =>{
+                con.query('SELECT * FROM eventos WHERE activo = true AND Fecha > CURDATE()' + queryExtras,[extraParams],(err,eventList) =>{
                     if(err) throw err;
                     con.query('SELECT * FROM facultades',(err,locationList)=>{
                         if(err) throw err;
@@ -523,7 +523,11 @@ router.get('/filter',verificarSesion ,function(req, res, next) {
                                 map.set(element.Evento_ID,element.Estado_Inscripcion);
                             });
                             con.release();
-                            return res.json({ success: true,events:eventList, locations:locationList , user:user,stateList:map }); 
+                            const stateListObj = Array.from(map.entries()).reduce((acc, [key, value]) => {
+                                acc[key] = value;
+                                return acc;
+                              }, {});
+                            return res.json({ success: true,events:eventList, locations:locationList , user:user,stateList:stateListObj }); 
                         });
                     });
                 });

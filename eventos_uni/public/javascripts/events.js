@@ -1,4 +1,5 @@
 
+
 function showAlert(message, type,container) {
   const alertHtml = `<div class="alert alert-${type} mt-3" role="alert">${message}</div>`;
   $(container).append(alertHtml);
@@ -101,7 +102,7 @@ $(document).ready(function () {
                     <p class="mb-2"><strong>Tipo de Evento:</strong> ${newEvent.Tipo}</p>
                     <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editEventModal${newEvent.ID}">Editar Evento</button>
                     <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteEventModal${newEvent.ID}">Eliminar Evento</button>
-                    <a class="btn btn-info btn-sm" href="/viewEvents/showDetails/${newEvent.ID}">Ver participantes</a>
+                    <a class="btn btn-info btn-sm" href="/viewEvents/showDetails/${newEvent.ID}">Ver detalles</a>
                   </li>
                 `
                 //inserta el evento en el ejs
@@ -356,7 +357,7 @@ $(document).ready(function () {
                   const totalCapacity = response.totalCapacity;
                   const actualCapacity = response.actualCapacity;
                   $(`#leaveEvent${eventId}`).remove();
-                  $(`${eventElementId} p.mb-3 `).html(`<strong>Estado de la inscripción:</strong> No inscrito <button class="btn btn-secondary btn-sm" data-bs-target="#joinEventModal${eventId}" id="joinEvent${eventId}"data-bs-toggle="modal">Inscribirse</button>`);
+                  $(`${eventElementId} p.mb-3 `).html(`<strong>Estado de la inscripción:</strong> No inscrito <button class="btn btn-success btn-sm" data-bs-target="#joinEventModal${eventId}" id="joinEvent${eventId}"data-bs-toggle="modal">Inscribirse</button>`);
                   $(`${eventElementId} p.mb-1`).html(`<strong>Capacidad:</strong> ${actualCapacity}/ ${totalCapacity} personas`);
                   $(`#leaveEventModal${eventId}`).modal('hide');
                   showAlert('Tu inscripción ha sido actualizada.', 'success', '#createdAlert');
@@ -385,23 +386,53 @@ $(document).ready(function () {
           if (response.success) {
             $('#eventList').html("");
             events = response.events;
+            user = response.user;
+            stateList = response.stateList;
+         
             events.forEach(Event => {
-                const eventHtml = `
-                  <li class="list-group-item mb-3" id="event-${Event.ID}">
-                    <h4 class="mb-1">${Event.Titulo}</h4>
-                    <p class="mb-2"><strong>Descripción:</strong> ${Event.Descripcion}</p>
-                    <p class="mb-2"><strong>Fecha:</strong> ${new Date(Event.Fecha).toISOString().split('T')[0]} <strong>Hora:</strong> ${Event.Hora}</p>
-                    <p class="mb-2"><strong>Duración:</strong> ${Event.Duracion}</p>
-                    <p class="mb-2"><strong>Ubicación:</strong> ${Event.Facultad}: ${Event.Ubicacion}</p>
-                    <p class="mb-1"><strong>Capacidad:</strong> ${Event.Capacidad_Actual} / ${Event.Capacidad_Maxima} personas</p>
-                    <p class="mb-2"><strong>Tipo de Evento:</strong> ${Event.Tipo}</p>
-                    <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editEventModal${Event.ID}">Editar Evento</button>
-                    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteEventModal${Event.ID}">Eliminar Evento</button>
-                    <a class="btn btn-info btn-sm" href="/viewEvents/showDetails/${Event.ID}">Ver participantes</a>
-                  </li>
-                `
-                //inserta el evento en el ejs
-                $('#eventList').prepend(eventHtml);
+              const eventDate = new Date(Event.Fecha);
+              const today = new Date();
+              const isPastEvent = eventDate < today;
+              console.log(eventDate);
+              console.log(today);
+              let eventHtml = `
+              <li class="list-group-item mb-3 ${isPastEvent ? 'bg-warning text-black' : ''} id="event-${Event.ID}">
+                  <h4 class="mb-1">${Event.Titulo} ${isPastEvent ? '(TERMINADO)' : ''}</h4>
+                  <p class="mb-2"><strong>Descripción:</strong> ${Event.Descripcion}</p>
+                  <p class="mb-2"><strong>Fecha:</strong> ${new Date(Event.Fecha).toISOString().split('T')[0]} <strong>Hora:</strong> ${Event.Hora}</p>
+                  <p class="mb-2"><strong>Duración:</strong> ${Event.Duracion}</p>
+                  <p class="mb-2"><strong>Ubicación:</strong> ${Event.facultad}:${Event.Ubicacion}</p>
+                  <p class="mb-1"><strong>Capacidad:</strong> ${Event.Capacidad_Actual} / ${Event.Capacidad_Maxima} personas</p>
+                  <p class="mb-2"><strong>Tipo de Evento:</strong> ${Event.tipo}</p>`;
+                  
+              if (user[0].Rol === "organizador") {
+                if(isPastEvent){
+                  eventHtml += `
+                      <a class="btn btn-info btn-sm" href="/viewEvents/showDetails/${Event.ID}">Ver detalles</a>`;
+                }
+                else{
+                  eventHtml += `
+                      <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editEventModal${Event.ID}">Editar Evento</button>
+                      <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteEventModal${Event.ID}">Eliminar Evento</button>
+                      <a class="btn btn-info btn-sm" href="/viewEvents/showDetails/${Event.ID}">Ver detalles</a>`;
+                }
+                  
+              } else {
+                  const estadoInscripcion = stateList[Event.ID] || "No inscrito";
+                  eventHtml += `
+                      <p class="mb-3"><strong>Estado de inscripción:</strong> ${estadoInscripcion}`;
+                      console.log(estadoInscripcion);
+                  if (estadoInscripcion !== "inscrito" && estadoInscripcion !== "lista de espera") {
+                      eventHtml += `
+                          <button class="btn btn-success btn-sm" data-bs-target="#joinEventModal${Event.ID}" id="joinEvent${Event.ID}" data-bs-toggle="modal">Inscribirse</button></p>`;
+                  } else {
+                      eventHtml += `
+                          <button class="btn btn-danger btn-sm" data-bs-target="#leaveEventModal${Event.ID}" id="leaveEvent${Event.ID}" data-bs-toggle="modal">Desinscribirse</button></p>`;
+                  }
+              }
+
+              eventHtml += `</li>`;
+              $('#eventList').prepend(eventHtml);
             });
           } else {
               showAlert('Hubo un problema al buscar', 'danger', '#createdAlert');
