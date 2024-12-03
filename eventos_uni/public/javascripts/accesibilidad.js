@@ -11,6 +11,8 @@ $(document).ready(function () {
 
     // Modal
     let modalContent = $(".modal-content");
+    //Formularios
+    let formContent = $(".form-content");
 
     const body = $('body');
     var userTheme = body.attr('data-theme'); // Tema actual
@@ -29,11 +31,13 @@ $(document).ready(function () {
             body.addClass("default");
             body.attr('data-bs-theme', "dark");
             modalContent.addClass("modal-default")
+            formContent.addClass("form-default");
         }
         else{
             body.removeClass("default");
             body.attr('data-bs-theme', tema);
             modalContent.removeClass("modal-default")
+            formContent.removeClass("form-default");
         }
         body.attr('data-theme', tema);
         sincronizarBotonesTema(); // Actualiza el estado de los botones

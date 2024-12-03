@@ -21,6 +21,12 @@ body {
   margin-right: 5px;
 }
 
+footer {
+  padding: 1rem 0;
+  width: 100%;
+  border-top: 1px solid #00c9a7; 
+}
+
 /* footer {
   padding: 1rem 0;
   text-align: center;
@@ -35,6 +41,11 @@ body {
 
 a {
   color: #00B7FF;
+}
+
+.default-link{
+  color: #00c9a7;
+  cursor: pointer;
 }
 
 .default {

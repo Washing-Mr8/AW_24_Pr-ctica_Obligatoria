@@ -1,34 +1,13 @@
 "use strict"
 $(document).ready(function () {
-    let formName = $('#registerName');
-    let formCorreo = $('#registerEmail');
-    let formPassword = $('#registerPassword');
-    let formPhone = $('#registerPhone');
+    let formName = $('#editName');
+    let formCorreo = $('#editEmail');
+    let formPhone = $('#editPhone');
+    let formRol = $('#rol');
+
 
     let errorName = $('#name-error');
-    let errorCorreo = $('#email-error');
-    let errorPassword = $('#password-error');
     let errorPhone = $('#phone-error');
-
-    var validName = false;
-    var validCorreo = false;
-    var validPassword = false;
-    var validPhone = false;
-
-
-    // Función para validar los campos antes de enviar el formulario
-    function validateForm() {
-        const name = formName.val().trim();
-        const correo = formCorreo.val().trim();
-        const password = formPassword.val().trim();
-        const phone = formPhone.val().trim();
-
-        // Verificar si todos los campos tienen datos válidos
-        const isValid = name !== '' && validName && correo !== '' && validCorreo && password !== '' && validPassword && phone !== '' && validPhone;
-
-        // Habilitar o deshabilitar el botón de registro según el estado de los campos del formulario
-        $('#registerButton').prop('disabled', !isValid);
-    }
 
     const alertContainer = '#createdAlert';
 
@@ -49,15 +28,14 @@ $(document).ready(function () {
     }
 
 
-    $('#registerButton').on('click', function (event) {
+    $('#editButton').on('click', function (event) {
         event.preventDefault(); // Evita el envío tradicional del formulario
 
         const name =  formName.val().trim();
         const correo = formCorreo.val().trim();
-        const password =  formPassword.val().trim();
         const phone = formPhone.val().trim();
         const facultad =  $('#facultad').val();
-        const role = $('input[name="role"]:checked').val();
+        const rol = formRol.val().trim();
 
         const data = {
             registerName: name,
@@ -65,11 +43,11 @@ $(document).ready(function () {
             registerPassword: password,
             registerPhone: phone,
             facultad: facultad,
-            role: role
+            role: rol
         };
 
         //comprobacion de inyeccion sql
-        if (checkForSQL(name) || checkForSQL(correo)|| checkForSQL(password)|| checkForSQL(phone)|| checkForSQL(facultad)|| checkForSQL(role)) {
+        if (checkForSQL(name) ||checkForSQL(correo) ||checkForSQL(phone) || checkForSQL(rol)) {
             $.ajax({
                 url: '/user/ban',
                 method: 'POST',
@@ -91,7 +69,7 @@ $(document).ready(function () {
         }
 
         $.ajax({
-            url: '/user/register',
+            url: '/user/editarPerfil',
             method: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(data),
@@ -224,27 +202,10 @@ $(document).ready(function () {
         validateForm(); // Actualizar el estado del botón de envío
     });
 
-    // Verificar si hay un mensaje de error presente
-    if ($('.error-message').length > 0) {
-        // Mostrar una alerta con el mensaje de error
-        alert($('.error-message').text());
-    }
-
-    // Verificar si hay un mensaje de registro presente
-    if ($('.registro-message').length > 0) {
-        // Mostrar una alerta con el mensaje de error
-        alert($('.registro-message').text());
-    }
-
     // Función para validar los campos antes de enviar el formulario
     $('#registerButton').click(function (event) {
 
         $('#form-signin').submit();
     });
 
-
-    $('.roles-container .btn').on('click', function () {
-        const selectedRole = $(this).prev('input').val(); // Obtiene el valor del botón seleccionado
-        console.log('Rol seleccionado:', selectedRole);
-    });
 });

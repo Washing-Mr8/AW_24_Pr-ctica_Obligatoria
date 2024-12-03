@@ -3,7 +3,8 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-const { checkBannedIP } = require('./middleware/banned');
+const checkBannedIP  = require('./middleware/banned');
+const  notFoundHandler = require('./middleware/notFound');
 
 const db = require('./database');
 
@@ -42,7 +43,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(checkBannedIP);
 
 
 app.use('/', indexRouter);
@@ -51,11 +51,16 @@ app.use('/viewEvents', eventsRouter);
 app.use('/calendar',calendarRouter);
 
 
+app.use(checkBannedIP); //comprobacion de IP baneada
+app.use(notFoundHandler); //error 404 en paginas desconocidas
 
-// catch 404 and forward to error handler
+
+// catch 404 and forward to error handler (plantilla)
+/*
 app.use(function (req, res, next) {
   next(createError(404));
 });
+*/
 
 // error handler
 app.use(function (err, req, res, next) {

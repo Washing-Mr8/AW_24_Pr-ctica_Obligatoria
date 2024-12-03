@@ -244,24 +244,62 @@ router.post('/accesibilidad', function (req, res, next) {
   });
 });
 
-router.get('/editarPerfil',verificarSesion, function(req,res){
+router.get('/editarPerfil', verificarSesion, function (req, res) {
   pool.getConnection((err, con) => {
     if (err) {
       console.error('Error al intentar acceder a la base de datos:', err);
       return res.status(500).json({ message: 'Error al acceder a la base de datos' });
     }
-    con.query('SELECT * from Facultades', (err, result) => {
-      con.release();
+    con.query('SELECT * from Facultades', (err, facultad) => {
 
       if (err) {
+        con.release();
         console.error('Error al obtener facultades:', err);
         return res.status(500).render('error', { message: 'Error al cargar las facultades.' });
       }
 
+      con.query('SELECT Nombre, Correo,Telefono, Facultad_ID, Rol FROM usuarios WHERE ID = ? ', [req.session.userId], (err, user) => {
+        if (err) {
+          console.error('Error al obtener el usuario:', err);
+          con.release();
+          return res.status(500).render('error', { message: 'Error al obtener los datos del usuario.' });
+        }
 
-      return res.render('editarperfil', { title: 'Editar perfil', facultades: result });
+        if (user.length === 0) {
+          return res.status(404).render('error', { mesagge: 'Usuario no encontrado.' });
+        }
+        //devolvemos user si toda va bien
+        return res.render('editarperfil', { title: 'Editar perfil', facultades: facultad, usuario: user[0] });
+      });
     });
   });
+});
+
+router.post('/editarPerfil', function (req, res) {
+  pool.getConnection((err, con) => {
+    if (err) {
+      console.error('Error al intentar acceder a la base de datos:', err);
+      return res.status(500).json({ message: 'Error al acceder a la base de datos' });
+    }
+
+    const { editNombre, editCorreo, editTelefono, editFacultad } = req.body;
+    con.query('SELECT * FROM Usuarios WHERE ID = ?', [req.session.userId], (err, user) => {
+      if (err) {
+        console.error('Error al obtener el usuario:', err);
+        con.release();
+        return res.status(500).render('error', { message: 'Error al obtener los datos del usuario.' });
+      }
+
+      const currentUser = user[0];
+
+      con.query('', editFacultad, (err, facultadID) => {
+
+      });
+
+    });
+
+  });
+
 });
 
 router.get('/:year?/:month?', verificarSesion, function (req, res, next) {
@@ -282,8 +320,8 @@ router.get('/:year?/:month?', verificarSesion, function (req, res, next) {
       }
 
       con.query('SELECT * FROM eventos WHERE activo = true', (err, eventList) => {
-          con.release();
-          res.render('user', { title: user[0].Nombre, usuario: user[0], events: eventList});
+        con.release();
+        res.render('user', { title: user[0].Nombre, usuario: user[0], events: eventList });
       });
     });
 

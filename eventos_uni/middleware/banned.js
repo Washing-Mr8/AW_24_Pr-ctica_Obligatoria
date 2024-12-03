@@ -25,5 +25,5 @@ function checkBannedIP(req, res, next) {
     });
   }
   
-  module.exports = { checkBannedIP };
+  module.exports =  checkBannedIP ;
   

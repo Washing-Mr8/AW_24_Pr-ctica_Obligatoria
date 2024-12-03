@@ -9,12 +9,8 @@
 <body class="default" data-bs-theme="dark">
   <%- include("fragments/navbar") %>
 
-    <div class="container">
-      <!--modificar con ejs en vez de thymleaf
-        
-        <p th:if="${registroExitoso}" class="eslogan registro-message" th:text="${registroExitoso}">Registro llevado a
-          cabo
-          con exito. Por favor, inicie sesión.</p> -->
+    <div class="form-content form-default">
+    
       <form class="form-signin" method="post" action="/user/register">
         <h2 class="form-signin-heading text-center">Formulario de registro</h2>
 
