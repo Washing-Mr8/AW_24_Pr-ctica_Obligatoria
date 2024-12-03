@@ -283,6 +283,24 @@ router.post('/editarPerfil', function (req, res) {
     }
 
     const { editNombre, editCorreo, editTelefono, editFacultad } = req.body;
+
+    const phoneRegex = /^\+\d{1,3}\s\d{3}\s\d{3}\s\d{3}$/;
+    if (editTelefono && !phoneRegex.test(editTelefono)) {
+      return res.status(400).json({ success: false, message: 'El número de teléfono no tiene un formato válido.' });
+    }
+
+    if (!editNombre || editNombre.trim() === "") {
+      return res.status(400).json({ success: false, message: 'El nombre no puede estar vacío.' });
+    }
+
+    const emailRegex = /^[^\s@]+@ucm\.es$/;
+
+    if (!editCorreo) {
+      return res.status(400).json({ success: false, message: 'El correo electrónico no puede estar vacío.' });
+    } else if (!emailRegex.test(editCorreo)) {
+      return res.status(400).json({ success: false, message: 'El correo electrónico no tiene un formato válido.' });
+    }
+
     con.query('SELECT * FROM Usuarios WHERE ID = ?', [req.session.userId], (err, user) => {
       if (err) {
         console.error('Error al obtener el usuario:', err);
@@ -302,20 +320,20 @@ router.post('/editarPerfil', function (req, res) {
           return res.status(500).json({ mesagge: 'Error al acceder a las facultades.' });
         }
 
-        if (currentFacultadID !== facultadID[0]) {
-          currentFacultadID = facultadID[0];
+        if (currentFacultadID !== facultadID[0].ID) {
+          currentFacultadID = facultadID[0].ID;
         }
         if (currentNombre !== editNombre) {
-          currentNombre = editNombre
+          currentNombre = editNombre;
         }
         if (currentCorreo !== editCorreo) {
-          currentNombre = editNombre
+          currentCorreo = editCorreo;
         }
         if (currenttelefono !== editTelefono) {
-          currentNombre = editNombre
+          currenttelefono = editTelefono;
         }
 
-        con.query('UPDATE Usuarios SET Nombre = ?, SET Correo = ?, SET Telefono = ?, SET Facultades_ID = ? WHERE ID = ? ',
+        con.query('UPDATE Usuarios SET Nombre = ?, Correo = ?, Telefono = ?, Facultad_ID = ? WHERE ID = ? ',
           [currentNombre, currentCorreo, currenttelefono, currentFacultadID, req.session.userId], (err, result) => {
             con.release();
 
@@ -323,15 +341,17 @@ router.post('/editarPerfil', function (req, res) {
               console.error('Error al editar el perfil', err);
               return res.status(500).json({ mesagge: 'Error al editar el perfil' });
             }
+            req.session.name = editNombre;
+            req.session.Correo = editCorreo;
 
-            return res.json({success:true, message:"Perfil editado con exito"});
+            return res.json({ success: true, message: "Perfil editado con exito" });
           });
       });
     });
   });
 });
 
-router.get('/resetPassword',function(req,res){
+router.get('/resetPassword', function (req, res) {
   let correo = "";
   let name = "notLogged";
   let isLogged = false;
@@ -347,46 +367,60 @@ router.get('/resetPassword',function(req,res){
     }
   }
 
-  return res.render('resetPassword',{title:"Recuperación de Contraseña",isLogged: isLogged, isAdmin: isAdmin, username:name, email:correo });
+  return res.render('resetPassword', { title: "Cambio de Contraseña", isLogged: isLogged, isAdmin: isAdmin, username: name, email: correo });
 });
 
-router.post('/resetPassword',function(req,res){
-  const {correo, newPassword} = req.body;
+router.post('/resetPassword', function (req, res) {
+  const { correo, newPassword } = req.body;
   //comprobar si la password es igual a la que ya tenía
-  pool.getConnection((err,con)=>{
+  pool.getConnection((err, con) => {
     if (err) {
       console.error('Error al intentar acceder a la base de datos:', err);
       return res.status(500).json({ message: 'Error al acceder a la base de datos' });
     }
 
-    con.query('SELECT Password FROM Usuarios WHERE ID = ?',[req.session.userId],(err,currentPassword)=>{
+    if(req.session.correo){
+      if(req.session.correo !== correo){
+        return res.status(400).json({ message: 'El correo no coincide con el usuario activo' });
+      }
+    }
+
+    if(!correo || correo.trim() ===""){
+      return res.status(400).json({ message: 'El correo no puede estar vacío' });
+    }
+    
+    if(!newPassword || newPassword.trim() === ""){
+      return res.status(400).json({ message: 'La contraseña no puede estar vacía' });
+    }
+
+    con.query('SELECT Password FROM Usuarios WHERE Correo = ?', [correo], (err, currentPassword) => {
       if (err) {
         con.release();
         console.error('Error al intentar obtener la contraseña:', err);
-        return res.status(500).json({ message: 'Error al intentar obtener la contraseña' });
+        return res.status(500).json({ message: 'El correo no está registrado' });
       }
 
-      bcrypt.compare(newPassword, currentPassword[0], (err, result) => {
+      bcrypt.compare(newPassword, currentPassword[0].Password, (err, result) => {
         if (err) {
           con.release(),
-          console.error('Error al comparar contraseñas:', err);
+            console.error('Error al comparar contraseñas:', err);
           return res.status(500).json({ message: 'Error al comparar contraseñas' });
         }
 
-        if(result){
+        if (result) {
           con.release(),
-          console.error('La contraseña es la mismma!', err);
+            console.log('La contraseña es la misma!');
           return res.status(500).json({ message: 'La contraseña es igual que la anterior' });
-        }else{
+        } else {
 
-          bcrypt.hash(registerPassword, SALT_ROUNDS, (err, hashedPassword) => {
+          bcrypt.hash(newPassword, SALT_ROUNDS, (err, hashedPassword) => {
             if (err) {
               con.release();
               console.error('Error al hashear la nueva contraseña:', err);
               return res.status(500).json({ mesagge: 'Error al hashear la nueva contraseña.' });
             }
 
-            con.query('UPDATE Usuarios SET Password = ? WHERE Correo = ?',[hashedPassword, correo], (err) => {
+            con.query('UPDATE Usuarios SET Password = ? WHERE Correo = ?', [hashedPassword, correo], (err) => {
               con.release();
 
               if (err) {
@@ -402,7 +436,7 @@ router.post('/resetPassword',function(req,res){
     });
   });
 
-  
+
 });
 
 router.get('/notifications',function(req,res){

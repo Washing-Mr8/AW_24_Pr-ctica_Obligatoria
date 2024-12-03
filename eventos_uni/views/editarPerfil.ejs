@@ -14,7 +14,7 @@
       <div class="form-content ">
 
         <form class="form-edit" method="post" action="/user/editarPerfil">
-          <h2 class="form-edit-heading text-center">Editar Perfil</h2>
+          <h2 class="form-edit-heading text-center"><i class="fa-solid fa-user"></i> Editar Perfil</h2>
 
 
           <label for="editName">Nombre Completo</label>
@@ -22,7 +22,7 @@
           <div id="name-error"></div>
 
           <label for="editEmail">Correo Eléctronico</label>
-        <input type="email" id="editEmail" name="editEmail" class="form-control" value="<%= usuario.Correo %>" disabled>
+        <input type="email" id="editEmail" name="editEmail" class="form-control" value="<%= usuario.Correo %>">
         <div id="email-error"></div>
 
           <label for="editPhone">Número de telefono</label>
@@ -52,7 +52,7 @@
 
         <!-- Texto para animar al usuario a registrarse -->
         <div class="text-center mt-3">
-          <a class="register-text" href="/user/recover">¿Quieres cambiar la contraseña? pulsa este enlace.</a>
+          <a class="register-text" href="/user/resetPassword">¿Quieres cambiar la contraseña? pulsa este enlace.</a>
         </div>
 
         <div id="createdAlert"></div>
