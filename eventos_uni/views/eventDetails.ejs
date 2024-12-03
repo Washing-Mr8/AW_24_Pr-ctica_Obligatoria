@@ -39,17 +39,42 @@
                                 <% users.forEach((user, key) => { %>
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <%= user[0] %> <!-- Nombre del participante -->
-                                        <%if(user[1] == "inscrito"){%>
-                                          <span class="badge bg-success"> inscrito </span> 
-                                        <%}else{%>
-                                          <span class="badge bg-info"> lista de espera </span>
-                                        <%}%>
-                                        
+                                        <% if (user[1] == "inscrito") { %>
+                                          <span class="badge bg-success">inscrito</span> 
+                                        <% } else { %>
+                                          <span class="badge bg-info">lista de espera</span>
+                                        <% } %>
                                     </li>
                                 <% }); %>
                             </ul>
                         <% } else { %>
                             <p class="text-muted">No hay participantes registrados.</p>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comentarios -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0">Comentarios de los Usuarios</h3>
+                    </div>
+                    <div class="card-body">
+                        <% if (comments && comments.length > 0) { %>
+                            <ul class="list-group mb-3">
+                                <% comments.forEach(comment => { %>
+                                    <li class="list-group-item">
+                                        <p class="mb-1"><strong><%= comment.ID %>:</strong></p>
+                                        <p class="mb-0"><i>"<%= comment.mensaje %>"</i></p>
+                                        <p class="text-muted small">Valoración: <%= comment.valoracion %> estrellas</p>
+                                    </li>
+                                <% }); %>
+                            </ul>
+                        <% } else { %>
+                            <p class="text-muted">No hay comentarios disponibles.</p>
                         <% } %>
                     </div>
                 </div>

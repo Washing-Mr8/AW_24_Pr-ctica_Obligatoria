@@ -1,7 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <%- include("fragments/head")%>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css">
+
 </head>
 <body class="<%= theme %> <%= fontSize %>" data-bs-theme="<%= theme === 'default' ? 'dark' : theme %>"  data-theme="<%= theme %>" data-font-size="<%= fontSize %>">
   <%- include("fragments/navbar") %>
@@ -69,7 +71,9 @@
               </p>
               <%}else{%>
                 <% if(stateList.has(event.ID)){%>
-                  <button class="btn btn-info btn-sm" data-bs-target="#leaveEventModal<%= event.ID %>" id="leaveEvent<%= event.ID %>" data-bs-toggle="modal">Deja un comentario</button>
+                  <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#commentEventModal<%= event.ID %>">
+                    Deja un comentario
+                  </button>
                 <%}%>
               <%}%>
             <%}%>
@@ -288,6 +292,41 @@
     </div>
     <% }); %>
 
+    <% events.forEach(event => { %>
+      <div class="modal fade" id="commentEventModal<%= event.ID %>" tabindex="-1" aria-labelledby="commentEventModalLabel<%= event.ID %>" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="commentEventModalLabel<%= event.ID %>">Comentar y Valorar: <%= event.Titulo %></h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <form id="commentForm<%= event.ID %>">
+                <!-- Input para el comentario -->
+                <div class="mb-3">
+                  <label for="comment<%= event.ID %>" class="form-label">Comentario</label>
+                  <textarea class="form-control" id="comment<%= event.ID %>" name="comment" rows="3" required></textarea>
+                </div>
+                <!-- Input para las estrellas -->
+                <div class="mb-3">
+                  <label class="form-label">Valoración</label>
+                  <div id="rating<%= event.ID %>" class="d-flex align-items-center">
+                    <% for (let i = 1; i <= 5; i++) { %>
+                      <input type="radio" class="btn-check" name="rating<%= event.ID %>" id="star<%= i %>_<%= event.ID %>" value="<%= i %>" required>
+                      <label class="btn btn-outline-warning" for="star<%= i %>_<%= event.ID %>">
+                        <i class="bi bi-star"></i>
+                      </label>
+                    <% } %>
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Enviar</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% }); %>
+    
   
   <script src="/javascripts/events.js"></script>
 </body>

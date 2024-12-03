@@ -12,7 +12,7 @@ router.get('/',verificarSesion ,function(req, res, next) {
             return res.status(500).send({ success: false, message: 'Error al cargar eventos' });
         }
         con.query('SELECT Rol FROM usuarios WHERE ID = ?', [idUser], (err,user) =>{
-            if(user[0].Rol == "organizador"){
+            if(user[0].Rol == "organizador"){ //SELECCINAR LOS EVENTOS SI ES ORGANIZADOR SOLO LOS SUYOS
                 con.query('SELECT * FROM eventos WHERE Organizador_ID = ? AND activo = true', [idUser],(err,eventList)=>{
                     if(err) throw err;
                     con.query('SELECT * FROM facultades',(err,locationList)=>{
@@ -22,8 +22,8 @@ router.get('/',verificarSesion ,function(req, res, next) {
                     });
                 });
             }
-            else{
-                con.query('SELECT * FROM eventos WHERE activo = true AND Fecha > CURDATE()',(err,eventList) =>{
+            else{//SELECCIONAR LOS EVENTOS SI ES ASISTENTE SOLO LOS QUE AUN ESTAN ACTIVOS Y POSTERIORES AL DIA DE HOY
+                con.query('SELECT * FROM eventos WHERE activo = true',(err,eventList) =>{
                     if(err) throw err;
                     con.query('SELECT * FROM facultades',(err,locationList)=>{
                         if(err) throw err;
@@ -58,7 +58,7 @@ router.post('/create',function(req,res){
                 con.release();
                 return res.status(500).send({ success: false, message: 'Error al crear el evento.' });
             }
-            if(check.length == 0){
+            if(check.length == 0){// SI NO HAY NINGUNO CON EL MISMO TITULO
                 con.query('SELECT ID FROM facultades WHERE Nombre = ?', [eventLocation], (err,locationID) =>{
                     if(err){
                         con.release();
@@ -70,7 +70,7 @@ router.post('/create',function(req,res){
                             return res.status(500).send({ success: false, message: 'Error al crear el evento.' });
                         }
                         canInsert = checkTime(repeated,eventTime,eventDuration);
-                        if(canInsert){
+                        if(canInsert){//CHEQUEA QUE NO HAYA UN EVENTO EN EL MISMO LUGAR A LA MISMA HORA
                             con.query('INSERT INTO eventos (Titulo,Descripcion,Fecha,Hora,Ubicacion,Capacidad_Maxima,tipo,Duracion,Capacidad_Actual,IDfacultad,Organizador_ID,facultad,activo) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)'
                                 ,[eventTitle,eventDescription,eventDate,eventTime,eventExact,eventCapacity,eventType,eventDuration,0,locationID[0].ID,idORganizer,eventLocation,true], (err,result) =>{
                                     if(err){
@@ -127,7 +127,7 @@ router.post('/delete/:id', function(req,res){
                 con.release();
                 return res.status(500).send({ success: false, message: 'Error al eliminar el evento.' });
             }  
-            if(users.length !== 0){
+            if(users.length !== 0){//SI HABÍA USUARIOS REGISTRADOS AL EVENTO ENVIA NOTIFICACIONES A TODOS 
                 mensaje = "El evento con id " + req.params.id + " ha sido cancelado";
                 sentNotification(0,"Un evento al que estabas inscrito ha sido eliminado",users,con);
             }
@@ -197,7 +197,7 @@ router.post('/edit/:id', function(req,res){
                 if(bdEvent[0].IDfacultad !== locationID[0].ID)
                     bdEvent[0].IDfacultad = locationID[0].ID;
     
-                if(bdEvent[0].Capacidad_Maxima < bdEvent[0].Capacidad_Actual){
+                if(bdEvent[0].Capacidad_Maxima < bdEvent[0].Capacidad_Actual){// SI SE REDUCE LA CAPACIDAD Y QUEDAN USUARIOS FUERA LOS MANDA A LISTA DE ESPERA Y LOS NOTIFICA
                     addToQueueAndNotify(eventId,bdEvent[0].Capacidad_Actual - bdEvent[0].Capacidad_Maxima,con,bdEvent[0].Capacidad_Maxima);
                 }
                 con.query('SELECT Hora, Duracion FROM eventos WHERE Fecha = ? AND IDfacultad = ? AND Ubicacion = ?', [bdEvent[0].Fecha, bdEvent[0].IFfacultad, bdEvent[0].Ubicacion], (err,repeated) =>{
@@ -235,7 +235,7 @@ router.post('/join/:id', function(req,res){
                 con.release();
                 return res.status(500).send({ success: false, message: 'Error al ingresar a evento.' });
             }
-            if(state.length == 0){
+            if(state.length == 0){//SI NUNCA ANTES HABÍA ESTADO REGISTRADO
                 con.query('SELECT Capacidad_Maxima, Capacidad_Actual FROM eventos WHERE ID = ?',[eventId], (err,capacity)=>{
                     if(err){
                         con.release();
@@ -253,7 +253,7 @@ router.post('/join/:id', function(req,res){
 
                     
                     const datetime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-                    if(capacity[0].Capacidad_Maxima > capacity[0].Capacidad_Actual ){
+                    if(capacity[0].Capacidad_Maxima > capacity[0].Capacidad_Actual ){// SI LA CAPACIDAD SIGUE SIN ESTAR LLENA
                         con.query('INSERT INTO inscripciones VALUES(?,?,?,?,?)',[userId,eventId,'inscrito',datetime,true],(err)=>{
                             if(err){
                                 con.release();
@@ -269,7 +269,7 @@ router.post('/join/:id', function(req,res){
                             });
                         });
                     }
-                    else{
+                    else{//SI ESTA LLENA SE METE EN LISAT DE ESPERA
                         con.query('INSERT INTO inscripciones VALUES(?,?,?,?,?)',[userId,eventId,'lista de espera',datetime,true],(err)=>{
                             if(err){
                                 con.release();
@@ -300,7 +300,7 @@ router.post('/join/:id', function(req,res){
 
                     
                     const datetime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-                    if(capacity[0].Capacidad_Maxima > capacity[0].Capacidad_Actual ){
+                    if(capacity[0].Capacidad_Maxima > capacity[0].Capacidad_Actual ){// SI LA CAPACIDAD SIGUE SIN ESTAR LLENA
                         con.query('UPDATE inscripciones SET activo = true, Fecha_Inscripcion = ?, Estado_Inscripcion = ?  WHERE Usuario_ID = ?',[datetime,'inscrito',userId],(err)=>{
                             if(err){
                                 con.release();
@@ -316,7 +316,7 @@ router.post('/join/:id', function(req,res){
                             });
                         });
                     }
-                    else{
+                    else{//SI ESTA LLENA SE METE EN LISAT DE ESPERA
                         con.query('UPDATE inscripciones SET activo = true, Fecha_Inscripcion = ?, Estado_Inscripcion = ?  WHERE Usuario_ID = ?',[datetime,'lista de espera',userId],(err)=>{
                             if(err){
                                 con.release();
@@ -354,7 +354,7 @@ router.post('/leave/:id', function(req,res){
                         return res.status(500).send({ success: false, message: 'Error al salirse de evento.' }); 
                     }
                     if(state[0].Estado_Inscripcion == "inscrito"){
-                        if(capacity[0].Capacidad_Actual === capacity[0].Capacidad_Maxima){
+                        if(capacity[0].Capacidad_Actual === capacity[0].Capacidad_Maxima){// SI ESTABA LLENO EL EVENTO
                             con.query('UPDATE inscripciones SET activo = false WHERE Usuario_ID = ? AND Evento_ID = ?', [userId,eventId], (err)=>{
                                 if(err){
                                     con.release();
@@ -365,7 +365,7 @@ router.post('/leave/:id', function(req,res){
                                         con.release();
                                         return res.status(500).send({ success: false, message: 'Error al salirse de evento.' }); 
                                     }
-                                    if(waitList.length === 0){
+                                    if(waitList.length === 0){// SI NO HAY LISTA DE ESPERA
                                         con.query('UPDATE eventos SET Capacidad_Actual = ? WHERE ID = ?' , [capacity[0].Capacidad_Actual - 1,eventId], (err)=>{
                                             if(err){
                                                 con.release();
@@ -375,7 +375,7 @@ router.post('/leave/:id', function(req,res){
                                             return res.json({ success: true,actualCapacity : capacity[0].Capacidad_Actual - 1, totalCapacity : capacity[0].Capacidad_Maxima});                     
                                        });
                                     }
-                                    else{
+                                    else{//SI HAY LISTA DE ESPERA
                                         con.query('UPDATE inscripciones SET Estado_Inscripcion = ? WHERE Usuario_ID = ? AND Evento_ID = ?' , ['inscrito',waitList[0].Usuario_ID,waitList[0].Evento_ID], (err)=>{
                                             if(err){
                                                 con.release();
@@ -389,7 +389,7 @@ router.post('/leave/:id', function(req,res){
                                 });
                             });
                         }
-                        else{
+                        else{// SI NO ESTABA LLENO
                             con.query('UPDATE inscripciones SET activo = false WHERE Usuario_ID = ? AND Evento_ID = ?', [userId,eventId], (err)=>{
                                 if(err){
                                     con.release();
@@ -459,10 +459,30 @@ router.get('/showDetails/:id',verificarSesion ,function(req, res, next) {
                         return res.status(500).send({ success: false, message: 'Error al mostrar evento.'}); 
                     }
                     
-                    con.release();
-                    res.render('eventDetails', { title: 'Event details', event:eventData,users:map });
-                });
+                    con.query("SELECT * FROM comentarios WHERE Evento_ID = ?",[req.params.id],(err,reviews)=>{
+                        if(err){
+                            con.release();
+                            return res.status(500).send({ success: false, message: 'Error al mandar comentario' });
+                        }
+                        con.query("SELECT Nombre,ID FROM usuarios WHERE ID = ?",[req.session.userId],(err,users)=>{
+                            if(err){
+                                con.release();
+                                return res.status(500).send({ success: false, message: 'Error al mandar comentario' });
+                            }
+                            userNames = new Map();
+                            reviews.forEach(review => {
+                                users.forEach(user => {
+                                    if(review.Usuario_ID === user.ID)
+                                        userNames.set(review.Usuario_ID,user.Nombre);
+                                });
+                            });
+                            con.release();
+                            res.render('eventDetails', { title: 'Event details', event:eventData,users:map,comments:reviews, userNames:userNames });
+                        });
+                    });
 
+                });
+                    
             });
         });
         
@@ -537,6 +557,25 @@ router.get('/filter',verificarSesion ,function(req, res, next) {
     });
     
    
+});
+
+router.post("/comment/:id",function(req,res){
+    const{comment,rating} = req.body;
+    const userId = req.session.userId;
+    pool.getConnection(function(error,con){
+        if(error){
+            con.release();
+            return res.status(500).send({ success: false, message: 'Error al mandar comentario' });
+        }
+        con.query("INSERT INTO comentarios (valoracion,mensaje,Usuario_ID,Evento_ID) VALUES (?,?,?,?)",[rating,comment,userId,req.params.id],(err)=>{
+            if(err){
+                con.release();
+                return res.status(500).send({ success: false, message: 'Error al mandar comentario' });
+            }
+            con.release();
+            return res.json({ success: true }); 
+        });
+    });
 });
 
 
