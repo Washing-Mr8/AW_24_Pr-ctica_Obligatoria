@@ -1,0 +1,53 @@
+<% events.forEach(event => { %>
+    <div class="modal fade" id="leaveEventModal<%= event.ID%>" tabindex="-1" aria-labelledby="leaveEventModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h6 class="modal-title" id="leaveEventModalLabel">¿Estás seguro de que deseas abandonar el evento <%= event.Titulo%> ?</h6>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="button" class="btn btn-danger leaveEvent" id="leaveEventButton<%= event.ID %>" data-event-id="<%= event.ID %>">Desinscribirse</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <% }); %>
+    <% events.forEach(event => { %>
+        <div class="modal fade" id="commentEventModal<%= event.ID %>" tabindex="-1" aria-labelledby="commentEventModalLabel<%= event.ID %>" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="commentEventModalLabel<%= event.ID %>">Comentar y Valorar: <%= event.Titulo %></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <form id="commentForm<%= event.ID %>">
+                  <!-- Input para el comentario -->
+                  <div class="mb-3">
+                    <label for="comment<%= event.ID %>" class="form-label">Comentario</label>
+                    <textarea class="form-control" id="comment<%= event.ID %>" name="comment" rows="3" required></textarea>
+                  </div>
+                  <!-- Input para las estrellas -->
+                  <div class="mb-3">
+                    <label class="form-label">Valoración</label>
+                    <div id="rating<%= event.ID %>" class="d-flex align-items-center">
+                      <% for (let i = 1; i <= 5; i++) { %>
+                        <input type="radio" class="btn-check" name="rating<%= event.ID %>" id="star<%= i %>_<%= event.ID %>" value="<%= i %>" required>
+                        <label class="btn btn-outline-warning" for="star<%= i %>_<%= event.ID %>">
+                          <i class="bi bi-star"></i>
+                        </label>
+                      <% } %>
+                    </div>
+                  </div>
+                  <button type="submit" class="btn btn-primary w-100">Enviar</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% }); %>
+
+      <!--MODAL PARA ELIMINAR EVENTOS (SOLO DE ORGANIZADORES)-->
+  

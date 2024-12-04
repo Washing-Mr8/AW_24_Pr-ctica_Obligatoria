@@ -457,6 +457,7 @@ router.get('/notifications',function(req,res){
 });
 
 router.get('/', verificarSesion, function (req, res, next) {
+  idUser = req.session.userId;
   pool.getConnection(function (error, con) {
     if (error) {
       con.release();
@@ -473,10 +474,31 @@ router.get('/', verificarSesion, function (req, res, next) {
         return res.status(404).render('error', { mesagge: 'Usuario no encontrado.' });
       }
 
-      con.query('SELECT * FROM eventos WHERE activo = true', (err, eventList) => {
-        con.release();
-        res.render('user', { title: user[0].Nombre, usuario: user[0], events: eventList });
-      });
+      con.query('SELECT Rol FROM usuarios WHERE ID = ?', [idUser], (err,user) =>{
+        if(user[0].Rol == "organizador"){ //SELECCINAR LOS EVENTOS SI ES ORGANIZADOR SOLO LOS SUYOS
+            con.query('SELECT * FROM eventos WHERE Organizador_ID = ? AND activo = true', [idUser],(err,eventList)=>{
+                if(err) throw err;
+                con.release();
+                res.render('user', { title: 'Events', events:eventList , user:user});
+            });
+        }
+        else{//SELECCIONAR LOS EVENTOS SI ES ASISTENTE SOLO LOS QUE AUN ESTAN ACTIVOS Y POSTERIORES AL DIA DE HOY
+            con.query('SELECT * FROM eventos WHERE activo = true',(err,eventList) =>{
+                if(err) throw err;
+
+                  con.query('SELECT * FROM inscripciones WHERE Usuario_ID = ? AND activo = true',[idUser],(err,stateList)=>{
+                      if(err) throw err;
+                      var map = new Map();
+                      stateList.forEach(element => {
+                          map.set(element.Evento_ID,element.Estado_Inscripcion);
+                      });
+                      con.release();
+                      res.render('user', { title: 'Events', events:eventList,user:user, stateList:map });
+                  });
+            });
+        }
+
+    });
     });
 
   });

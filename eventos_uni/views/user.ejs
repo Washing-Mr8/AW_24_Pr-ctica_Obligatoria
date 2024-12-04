@@ -3,25 +3,106 @@
 
 <head>
     <%- include("fragments/head") %>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css">
 </head>
 
-<body class="<%= theme %> <%= fontSize %>" data-bs-theme="<%= theme === 'default' ? 'dark' : theme %>"  data-theme="<%= theme %>" data-font-size="<%= fontSize %>">
+<body class="<%= theme %> <%= fontSize %>" data-bs-theme="<%= theme === 'default' ? 'dark' : theme %>" data-theme="<%= theme %>" data-font-size="<%= fontSize %>">
 
-<!-- <body class="default" data-bs-theme="dark"> -->
     <header>
         <%- include("fragments/navbar") %>
     </header>
     <%- include("fragments/accesibilidad") %>
 
-    <div class="main-container">
-        <h1>
-            <%= title %>
-        </h1>
-        <p>Welcome back <%= title %>
-        </p>
-        
+    <div class="main-container d-flex flex-column align-items-center">
+
+        <% if (user[0].Rol === "asistente") { %>
+            <!-- Vista para asistentes -->
+            <div class="w-75">
+                <h2 class="text-center mb-4">Tus eventos inscritos</h2>
+                <ul class="list-group" id="eventList">
+                    <% events.forEach(event => { %>
+                        <% if(stateList.has(event.ID)) { %>
+                        <li class="list-group-item mb-3 <%= event.Fecha < new Date() ? 'bg-warning text-black' : '' %>" id="event-<%= event.ID %>">
+                            <h4 class="mb-1"><%= event.Titulo %> <%= event.Fecha < new Date() ? '(TERMINADO)' : '' %></h4>
+                            <p class="mb-2"><strong>Descripción:</strong> <%= event.Descripcion %></p>
+                            <p class="mb-2"><strong>Fecha:</strong> <%= new Date(event.Fecha).toISOString().split('T')[0] %> <strong>Hora:</strong> <%= event.Hora %></p>
+                            <p class="mb-2"><strong>Duración:</strong> <%= event.Duracion %></p>
+                            <p class="mb-2"><strong>Ubicación:</strong> <%= event.facultad %>:<%= event.Ubicacion %></p>
+                            <p class="mb-1"><strong>Capacidad:</strong> <%= event.Capacidad_Actual %> / <%= event.Capacidad_Maxima %> personas</p>
+                            <p class="mb-2"><strong>Tipo de Evento:</strong> <%= event.tipo %></p>
+                            <% if(event.Fecha > new Date()) { %>
+                                <p class="mb-3"><strong>Estado de la inscripción:</strong> 
+                                    <% if(stateList.has(event.ID)) { %>
+                                        <%= stateList.get(event.ID) %>
+                                        <button class="btn btn-danger btn-sm" data-bs-target="#leaveEventModal<%= event.ID %>" id="leaveEvent<%= event.ID %>" data-bs-toggle="modal">Desinscribirse</button>
+                                    <% } else { %>
+                                        No inscrito
+                                        <button class="btn btn-success btn-sm" data-bs-target="#joinEventModal<%= event.ID %>" id="joinEvent<%= event.ID %>" data-bs-toggle="modal">Inscribirse</button>
+                                    <% } %>
+                                </p>
+                            <% } else if(stateList.has(event.ID)) { %>
+                                <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#commentEventModal<%= event.ID %>">Deja un comentario</button>
+                            <% } %>
+                            
+                        </li>
+                        <% } %>
+                    <% }); %>
+                </ul>
+            </div>
+        <% } else if (user[0].Rol === "organizador") { %>
+            <!-- Vista para organizadores -->
+            <div class="d-flex justify-content-between w-100">
+                <!-- Lista de eventos -->
+                <div>
+                    <h2 class="text-center mb-4">Lista de Eventos</h2>
+                    <ul class="list-group" id="eventList">
+                        <% events.forEach(event => { %>
+                            <li class="list-group-item mb-3 p-2 small" id="event-<%= event.ID %>">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-1 fw-bold"><%= event.Titulo %></h6>
+                                    <% if(event.Fecha < new Date()) { %>
+                                        <span class="badge bg-warning text-black">TERMINADO</span>
+                                    <% } %>
+                                </div>
+                                <p class="mb-1 text-muted"><%= event.Descripcion.substring(0, 50) %>...</p>
+                                <small class="text-muted">Fecha: <%= new Date(event.Fecha).toISOString().split('T')[0] %> | Capacidad: <%= event.Capacidad_Actual %> / <%= event.Capacidad_Maxima %></small>
+                                <div class="mt-2">
+                                    <a class="btn btn-outline-info btn-sm" href="/viewEvents/showDetails/<%= event.ID %>">Detalles</a>
+                                </div>
+                            </li>
+                        <% }); %>
+                    </ul>
+                </div>
+                <!-- Paneles informativos -->
+                
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Comentario destacado</h5>
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="bi bi-star-fill text-warning me-2" style="font-size: 2rem;"></i>
+                                <span class="fs-4 fw-bold">5/5</span>
+                            </div>
+                            <p class="fs-5"><i>"MUY BUENO"</i></p>
+                            <p class="text-muted"><strong>Autor:</strong> PEPE</p>
+                        </div>
+                    </div>                    
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Estadísticas Generales</h5>
+                            <p class="card-text">Nota media: 5</p>
+                            <p class="card-text">Total participantes: 123</p>
+                            <p class="card-text">Vacantes ocupadas: 1%</p>
+                        </div>
+                    </div>
+                
+            </div>
+        <% } %>
     </div>
+
+    
+    <%- include("fragments/eventModals")%>
     <%- include("fragments/footer") %>
+    <script src="/javascripts/events.js"></script>
     <script src="/javascripts/notificationes.js"></script>
 </body>
 
