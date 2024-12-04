@@ -13,8 +13,6 @@ $(document).ready(function () {
     let modalContent = $(".modal-content");
     //Formularios
     let formContent = $(".form-content");
-    //cards
-    let cardContent = $(".card-content");
 
     const body = $('body');
     var userTheme = body.attr('data-theme'); // Tema actual
@@ -34,15 +32,12 @@ $(document).ready(function () {
             body.attr('data-bs-theme', "dark");
             modalContent.addClass("modal-default")
             formContent.addClass("form-default");
-            cardContent.addClass("card-default");
-
         }
         else{
             body.removeClass("default");
             body.attr('data-bs-theme', tema);
             modalContent.removeClass("modal-default")
             formContent.removeClass("form-default");
-            cardContent.removeClass("card-default");
         }
         body.attr('data-theme', tema);
         sincronizarBotonesTema(); // Actualiza el estado de los botones
@@ -156,42 +151,6 @@ $(document).ready(function () {
         cambiarFuente('fuente-muy-grande');
     });
 
-    let currentIndex = 0;
-  const events = $('.events-container .row .card');
-  $(events[currentIndex]).addClass('selected');
 
-  $(document).keydown(function (e) {
-    // Flechas para navegar entre eventos
-    if (e.key === "ArrowRight") {
-      if (currentIndex < events.length - 1) {
-        $(events[currentIndex]).removeClass('selected');
-        currentIndex++;
-        $(events[currentIndex]).addClass('selected');
-      }
-    }
-    else if (e.key === "ArrowLeft") {
-      if (currentIndex > 0) {
-        $(events[currentIndex]).removeClass('selected');
-        currentIndex--;
-        $(events[currentIndex]).addClass('selected');
-      }
-    }
-
-    // Ctrl + i para inscribirse
-    if (e.ctrlKey && e.key === "i") {
-      const joinButton = $(events[currentIndex]).find('.btn-success');
-      if (joinButton.length) {
-        joinButton.click();  // darle a inscribirse
-      }
-    }
-
-    // Ctrl + d para desinscribirse
-    if (e.ctrlKey && e.key === "d") {
-      const leaveButton = $(events[currentIndex]).find('.btn-danger');
-      if (leaveButton.length) {
-        leaveButton.click();  // darle a inscribirse a desinscribirse
-      }
-    }
-  });
 });
 

@@ -17,45 +17,37 @@
 
         <% if (user[0].Rol === "asistente") { %>
             <!-- Vista para asistentes -->
-            <div class="container">
+            <div class="w-75">
                 <h2 class="text-center mb-4">Tus eventos inscritos</h2>
-
-                <div class="events-container">
-                    <div class="row gy-4">
-                        <% events.forEach(event => { %>
-                            <% if(stateList.has(event.ID)) { %>
-                                <div class="col-12 col-sm-12 col-md-6 col-lg-4">
-                                    <div class="card card-hover h-100 <%= event.Fecha < new Date() ? 'bg-warning text-black' : 'card-content' %>" id="event-<%= event.ID %>">
-                                        <div class="card-body">
-                                            <h4 class="mb-1"><%= event.Titulo %> <%= event.Fecha < new Date() ? '(TERMINADO)' : '' %></h4>
-                                            <p class="mb-2"><strong>Descripción:</strong> <%= event.Descripcion %></p>
-                                            <p class="mb-2"><strong>Fecha:</strong> <%= new Date(event.Fecha).toISOString().split('T')[0] %> <strong>Hora:</strong> <%= event.Hora %></p>
-                                            <p class="mb-2"><strong>Duración:</strong> <%= event.Duracion %></p>
-                                            <p class="mb-2"><strong>Ubicación:</strong> <%= event.facultad %>:<%= event.Ubicacion %></p>
-                                            <p class="mb-1"><strong>Capacidad:</strong> <%= event.Capacidad_Actual %> / <%= event.Capacidad_Maxima %> personas</p>
-                                            <p class="mb-2"><strong>Tipo de Evento:</strong> <%= event.tipo %></p>
-                
-                                            <% if(event.Fecha > new Date()) { %>
-                                                <p class="mb-3"><strong>Estado de la inscripción:</strong> 
-                                                    <% if(stateList.has(event.ID)) { %>
-                                                        <%= stateList.get(event.ID) %>
-                                                        <button class="btn btn-danger btn-sm" data-bs-target="#leaveEventModal<%= event.ID %>" id="leaveEvent<%= event.ID %>" data-bs-toggle="modal">Desinscribirse</button>
-                                                    <% } else { %>
-                                                        No inscrito
-                                                        <button class="btn btn-success btn-sm" data-bs-target="#joinEventModal<%= event.ID %>" id="joinEvent<%= event.ID %>" data-bs-toggle="modal">Inscribirse</button>
-                                                    <% } %>
-                                                </p>
-                                            <% } else if(stateList.has(event.ID)) { %>
-                                                <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#commentEventModal<%= event.ID %>">Deja un comentario</button>
-                                            <% } %>
-                                        </div>
-                                    </div>
-                                </div>
+                <ul class="list-group" id="eventList">
+                    <% events.forEach(event => { %>
+                        <% if(stateList.has(event.ID)) { %>
+                        <li class="list-group-item mb-3 <%= event.Fecha < new Date() ? 'bg-warning text-black' : '' %>" id="event-<%= event.ID %>">
+                            <h4 class="mb-1"><%= event.Titulo %> <%= event.Fecha < new Date() ? '(TERMINADO)' : '' %></h4>
+                            <p class="mb-2"><strong>Descripción:</strong> <%= event.Descripcion %></p>
+                            <p class="mb-2"><strong>Fecha:</strong> <%= new Date(event.Fecha).toISOString().split('T')[0] %> <strong>Hora:</strong> <%= event.Hora %></p>
+                            <p class="mb-2"><strong>Duración:</strong> <%= event.Duracion %></p>
+                            <p class="mb-2"><strong>Ubicación:</strong> <%= event.facultad %>:<%= event.Ubicacion %></p>
+                            <p class="mb-1"><strong>Capacidad:</strong> <%= event.Capacidad_Actual %> / <%= event.Capacidad_Maxima %> personas</p>
+                            <p class="mb-2"><strong>Tipo de Evento:</strong> <%= event.tipo %></p>
+                            <% if(event.Fecha > new Date()) { %>
+                                <p class="mb-3"><strong>Estado de la inscripción:</strong> 
+                                    <% if(stateList.has(event.ID)) { %>
+                                        <%= stateList.get(event.ID) %>
+                                        <button class="btn btn-danger btn-sm" data-bs-target="#leaveEventModal<%= event.ID %>" id="leaveEvent<%= event.ID %>" data-bs-toggle="modal">Desinscribirse</button>
+                                    <% } else { %>
+                                        No inscrito
+                                        <button class="btn btn-success btn-sm" data-bs-target="#joinEventModal<%= event.ID %>" id="joinEvent<%= event.ID %>" data-bs-toggle="modal">Inscribirse</button>
+                                    <% } %>
+                                </p>
+                            <% } else if(stateList.has(event.ID)) { %>
+                                <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#commentEventModal<%= event.ID %>">Deja un comentario</button>
                             <% } %>
-                        <% }); %>
-                    </div>
-                </div>
-                
+                            
+                        </li>
+                        <% } %>
+                    <% }); %>
+                </ul>
             </div>
         <% } else if (user[0].Rol === "organizador") { %>
             <h2 class="text-center mb-2">Resumen de tu actividad en OrgaNice</h2>

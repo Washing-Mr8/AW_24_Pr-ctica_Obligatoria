@@ -123,23 +123,14 @@ a {
 }
 
 
-.card-hover {
-  border-width: 1px;
-  border-style: solid;
-  border-color: #00c9a7;
+.card {
+  border: none;
   border-radius: 10px;
   transition: 0.2s;
+  background: #00000000;
 }
 
-.card-default{
-  background: #845ec2;
-}
 
-.card-hover:hover {
+.card:hover {
   transform: scale(1.05);
-}
-
-.selected {
-  border: 3px solid #00c9a7;  /* Cambia el borde al color azul, por ejemplo */
-  transform: scale(1.02);
 }
