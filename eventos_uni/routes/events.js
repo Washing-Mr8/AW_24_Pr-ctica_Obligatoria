@@ -539,7 +539,8 @@ router.get('/filter',verificarSesion ,function(req, res, next) {
                 });
             }
             else{
-                con.query('SELECT * FROM eventos WHERE activo = true AND Fecha > CURDATE()' + queryExtras,[extraParams],(err,eventList) =>{
+                query = 'SELECT * FROM eventos WHERE activo = true AND Fecha > CURDATE()' + queryExtras;
+                con.query(query,extraParams,(err,eventList) =>{
                     if(err) throw err;
                     con.query('SELECT * FROM facultades',(err,locationList)=>{
                         if(err) throw err;
