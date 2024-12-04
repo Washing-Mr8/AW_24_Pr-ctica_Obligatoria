@@ -173,10 +173,12 @@ router.post('/login', function (req, res) {
       bcrypt.compare(loginPassword, usuario.Password, (err, result) => {
         if (err) {
           console.error('Error al comparar contraseñas:', err);
+          con.release();
           return res.status(500).json({ message: 'Error al comparar contraseñas' });
         }
 
         if (!result) {
+          con.release();
           return res.status(401).json({ message: 'La contraseña es incorrecta o no coincide' });
         }
 
@@ -185,7 +187,7 @@ router.post('/login', function (req, res) {
         req.session.name = usuario.Nombre;
         req.session.correo = usuario.Correo;
         req.session.role = usuario.Rol
-
+        
         res.json({ success: true, message: 'Inicio de sesión exitoso.' });
       });
     });
@@ -206,6 +208,7 @@ router.get('/logout', function (req, res) {
 
 router.post('/accesibilidad', function (req, res, next) {
   if (!req.session.userId) {
+    con.release();
     return res.status(401).json({ error: 'Usuario no autenticado' });
   }
 
@@ -269,6 +272,7 @@ router.get('/editarPerfil', verificarSesion, function (req, res) {
           return res.status(404).render('error', { mesagge: 'Usuario no encontrado.' });
         }
         //devolvemos user si toda va bien
+        con.release();
         return res.render('editarperfil', { title: 'Editar perfil', facultades: facultad, usuario: user[0] });
       });
     });
@@ -278,6 +282,7 @@ router.get('/editarPerfil', verificarSesion, function (req, res) {
 router.post('/editarPerfil', function (req, res) {
   pool.getConnection((err, con) => {
     if (err) {
+      con.release();
       console.error('Error al intentar acceder a la base de datos:', err);
       return res.status(500).json({ message: 'Error al acceder a la base de datos' });
     }
@@ -286,18 +291,22 @@ router.post('/editarPerfil', function (req, res) {
 
     const phoneRegex = /^\+\d{1,3}\s\d{3}\s\d{3}\s\d{3}$/;
     if (editTelefono && !phoneRegex.test(editTelefono)) {
+      con.release();
       return res.status(400).json({ success: false, message: 'El número de teléfono no tiene un formato válido.' });
     }
 
     if (!editNombre || editNombre.trim() === "") {
+      con.release();
       return res.status(400).json({ success: false, message: 'El nombre no puede estar vacío.' });
     }
 
     const emailRegex = /^[^\s@]+@ucm\.es$/;
 
     if (!editCorreo) {
+      con.release();
       return res.status(400).json({ success: false, message: 'El correo electrónico no puede estar vacío.' });
     } else if (!emailRegex.test(editCorreo)) {
+      con.release();
       return res.status(400).json({ success: false, message: 'El correo electrónico no tiene un formato válido.' });
     }
 
@@ -375,21 +384,25 @@ router.post('/resetPassword', function (req, res) {
   //comprobar si la password es igual a la que ya tenía
   pool.getConnection((err, con) => {
     if (err) {
+      con.release();
       console.error('Error al intentar acceder a la base de datos:', err);
       return res.status(500).json({ message: 'Error al acceder a la base de datos' });
     }
 
     if(req.session.correo){
       if(req.session.correo !== correo){
+        con.release();
         return res.status(400).json({ message: 'El correo no coincide con el usuario activo' });
       }
     }
 
     if(!correo || correo.trim() ===""){
+      con.release();
       return res.status(400).json({ message: 'El correo no puede estar vacío' });
     }
     
     if(!newPassword || newPassword.trim() === ""){
+      con.release();
       return res.status(400).json({ message: 'La contraseña no puede estar vacía' });
     }
 
@@ -450,6 +463,7 @@ router.get('/notifications',function(req,res){
         con.release();
         return res.status(500).json({ message: 'Error al cargar notificaciones' });
       }
+      con.release();
       return res.json({ success: true, notifications: messages });
     }
   );
@@ -471,6 +485,7 @@ router.get('/', verificarSesion, function (req, res, next) {
       }
 
       if (user.length === 0) {
+        con.release();
         return res.status(404).render('error', { mesagge: 'Usuario no encontrado.' });
       }
 
