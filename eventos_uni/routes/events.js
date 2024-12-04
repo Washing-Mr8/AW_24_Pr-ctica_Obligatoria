@@ -23,7 +23,7 @@ router.get('/',verificarSesion ,function(req, res, next) {
                 });
             }
             else{//SELECCIONAR LOS EVENTOS SI ES ASISTENTE SOLO LOS QUE AUN ESTAN ACTIVOS Y POSTERIORES AL DIA DE HOY
-                con.query('SELECT * FROM eventos WHERE activo = true',(err,eventList) =>{
+                con.query('SELECT * FROM eventos WHERE activo = true AND Fecha > CURDATE()',(err,eventList) =>{
                     if(err) throw err;
                     con.query('SELECT * FROM facultades',(err,locationList)=>{
                         if(err) throw err;
