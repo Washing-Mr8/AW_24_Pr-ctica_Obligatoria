@@ -24,7 +24,7 @@ $(document).ready(function () {
         const phone = formPhone.val().trim();
 
         // Verificar si todos los campos tienen datos válidos
-        const isValid = name !== '' && validName && correo !== '' && validCorreo && password !== '' && validPassword && phone !== '' && validPhone;
+        const isValid = name !== '' && validName && correo !== '' && validCorreo && password !== '' && validPassword  && validPhone;
 
         // Habilitar o deshabilitar el botón de registro según el estado de los campos del formulario
         $('#registerButton').prop('disabled', !isValid);
