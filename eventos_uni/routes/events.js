@@ -127,20 +127,27 @@ router.post('/delete/:id', function(req,res){
                 con.release();
                 return res.status(500).send({ success: false, message: 'Error al eliminar el evento.' });
             }  
-            if(users.length !== 0){//SI HABÍA USUARIOS REGISTRADOS AL EVENTO ENVIA NOTIFICACIONES A TODOS 
-                mensaje = "El evento con id " + req.params.id + " ha sido cancelado";
-                sentNotification(0,"Un evento al que estabas inscrito ha sido eliminado",users,con);
-            }
-            con.query('UPDATE inscripciones SET activo = ? WHERE Evento_ID = ?', [false,req.params.id], (err)=>{
+            con.query('SELECT Titulo FROM eventos WHERE ID = ?', [req.params.id], (err,title)=>{
                 if(err){
                     con.release();
                     return res.status(500).send({ success: false, message: 'Error al eliminar el evento.' });
+                }  
+                if(users.length !== 0){//SI HABÍA USUARIOS REGISTRADOS AL EVENTO ENVIA NOTIFICACIONES A TODOS 
+                    mes = "El evento " + title[0].Titulo + " ha sido cancelado";
+                    sentNotification(0,mes,users,con);
                 }
-                pool.query('UPDATE eventos SET activo = ? WHERE id = ?', [false,req.params.id], (err) => {
-                    if(err) throw err;
-                    con.release();
-                    return res.json({ success: true, message: 'Evento eliminado correctamente.' });
+                con.query('UPDATE inscripciones SET activo = ? WHERE Evento_ID = ?', [false,req.params.id], (err)=>{
+                    if(err){
+                        con.release();
+                        return res.status(500).send({ success: false, message: 'Error al eliminar el evento.' });
+                    }
+                    pool.query('UPDATE eventos SET activo = ? WHERE id = ?', [false,req.params.id], (err) => {
+                        if(err) throw err;
+                        con.release();
+                        return res.json({ success: true, message: 'Evento eliminado correctamente.' });
+                    });
                 });
+                
             });
             
         });
@@ -348,7 +355,7 @@ router.post('/leave/:id', function(req,res){
             }
             if(state.length != 0){
               
-                con.query('SELECT Capacidad_Maxima, Capacidad_Actual FROM eventos WHERE ID = ?',[eventId], (err,capacity)=>{
+                con.query('SELECT Capacidad_Maxima, Capacidad_Actual,Titulo FROM eventos WHERE ID = ?',[eventId], (err,capacity)=>{
                     if(err){
                         con.release();
                         return res.status(500).send({ success: false, message: 'Error al salirse de evento.' }); 
@@ -381,7 +388,7 @@ router.post('/leave/:id', function(req,res){
                                                 con.release();
                                                 return res.status(500).send({ success: false, message: 'Error al salirse de evento.' }); 
                                             }
-                                            sentNotification(0,"Se ha actualizado tu puesto en la lista de espera",waitList,con);
+                                            sentNotification(0,"Se ha actualizado tu puesto en la lista de espera en el evento " + capacity.Titulo,waitList,con);
                                             con.release();
                                             return res.json({ success: true,actualCapacity : capacity[0].Capacidad_Actual, totalCapacity : capacity[0].Capacidad_Maxima});                     
                                         });
@@ -614,14 +621,20 @@ function addToQueueAndNotify(eventId, amount,con,newCapacity){
             con.release();
             throw err;
         }
-        con.query('UPDATE eventos SET Capacidad_Actual = ? WHERE ID = ?',[newCapacity,eventId],(err,users)=>{
+        con.query('UPDATE eventos SET Capacidad_Actual = ? WHERE ID = ?',[newCapacity,eventId],(err)=>{
             if(err){
                 con.release();
                 throw err;
             }
+            con.query('SELECT Titulo FROM eventos WHERE ID = ? ',[eventId],(err,event)=>{
+                if(err){
+                    con.release();
+                    throw err;
+                }
             
-            sentNotification(0,"Un evento al que estabas inscrito ha sido modificado y has sido movido a la lista de espera",users,con);
-            return;
+                sentNotification(0,"Un evento "+ event[0].Titulo+"al que estabas inscrito ha sido modificado y has sido movido a la lista de espera",users,con);
+                return;
+            });
         });
     });
 }

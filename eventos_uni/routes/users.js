@@ -478,8 +478,59 @@ router.get('/', verificarSesion, function (req, res, next) {
         if(user[0].Rol == "organizador"){ //SELECCINAR LOS EVENTOS SI ES ORGANIZADOR SOLO LOS SUYOS
             con.query('SELECT * FROM eventos WHERE Organizador_ID = ? AND activo = true', [idUser],(err,eventList)=>{
                 if(err) throw err;
-                con.release();
-                res.render('user', { title: 'Events', events:eventList , user:user});
+                con.query('SELECT COUNT(*) AS Total_Eventos FROM eventos WHERE Organizador_ID = ? AND activo = true', [idUser],(err,eventsCreated)=>{
+                  if(err) throw err;
+                  extraInfo = [];
+                  extraInfo[0] = eventsCreated[0].Total_Eventos;
+                  const query = `
+                     SELECT 
+                         COUNT(i.Usuario_ID) AS Total_Inscritos
+                     FROM 
+                         eventos e
+                     JOIN 
+                         inscripciones i ON e.ID = i.Evento_ID
+                     WHERE 
+                         e.Organizador_ID = ? -- ID del organizador
+                         AND e.activo = 1 -- Solo eventos activos
+                         AND i.activo = 1; -- Solo inscripciones activas
+                    ` ;
+
+                  con.query(query, [idUser],(err,totalJoined)=>{
+                    if(err) throw err;
+                    extraInfo[1] = totalJoined[0].Total_Inscritos;
+                    const query = `
+                      SELECT 
+                          SUM(e.Capacidad_Maxima) AS Total_Plazas
+                      FROM 
+                          eventos e
+                      WHERE 
+                          e.Organizador_ID = ? -- ID del organizador
+                          AND e.activo = 1; -- Solo eventos activos
+                    `;
+
+                    con.query(query,[idUser],(err,totalSpaces)=>{
+                      extraInfo[2] = totalSpaces[0].Total_Plazas;
+                      const query = `
+                          SELECT 
+                              AVG(c.valoracion) AS Media_Valoraciones
+                          FROM 
+                              eventos e
+                          JOIN 
+                              comentarios c ON e.ID = c.Evento_ID
+                          WHERE 
+                              e.Organizador_ID = ? -- ID del organizador
+                              AND e.activo = 1; -- Solo eventos activos
+                        `;
+
+                      con.query(query,[idUser],(err,avgMark)=>{
+                        extraInfo[3] = avgMark[0].Media_Valoraciones;
+                        con.release();
+                        res.render('user', { title: 'Events', events:eventList , user:user,extras:extraInfo});
+                      });
+                    });
+                    
+                  });
+              });
             });
         }
         else{//SELECCIONAR LOS EVENTOS SI ES ASISTENTE SOLO LOS QUE AUN ESTAN ACTIVOS Y POSTERIORES AL DIA DE HOY

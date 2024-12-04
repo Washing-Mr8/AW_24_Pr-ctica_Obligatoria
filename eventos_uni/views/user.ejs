@@ -50,52 +50,44 @@
                 </ul>
             </div>
         <% } else if (user[0].Rol === "organizador") { %>
-            <!-- Vista para organizadores -->
-            <div class="d-flex justify-content-between w-100">
-                <!-- Lista de eventos -->
+            <h2 class="text-center mb-2">Resumen de tu actividad en OrgaNice</h2>
+            <div class="d-flex">
                 <div>
-                    <h2 class="text-center mb-4">Lista de Eventos</h2>
+                    <h2 class="text-center mb-2">Lista de tus Eventos</h2>
                     <ul class="list-group" id="eventList">
                         <% events.forEach(event => { %>
-                            <li class="list-group-item mb-3 p-2 small" id="event-<%= event.ID %>">
+                            <li class="list-group-item border rounded shadow-sm mb-3 p-3 small" id="event-<%= event.ID %>">
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-1 fw-bold"><%= event.Titulo %></h6>
+                                    <h6 class="mb-1 fw-bold text-truncate"><%= event.Titulo %></h6>
                                     <% if(event.Fecha < new Date()) { %>
                                         <span class="badge bg-warning text-black">TERMINADO</span>
                                     <% } %>
                                 </div>
-                                <p class="mb-1 text-muted"><%= event.Descripcion.substring(0, 50) %>...</p>
-                                <small class="text-muted">Fecha: <%= new Date(event.Fecha).toISOString().split('T')[0] %> | Capacidad: <%= event.Capacidad_Actual %> / <%= event.Capacidad_Maxima %></small>
-                                <div class="mt-2">
-                                    <a class="btn btn-outline-info btn-sm" href="/viewEvents/showDetails/<%= event.ID %>">Detalles</a>
+                                <small class="text-muted d-block">Fecha: <%= new Date(event.Fecha).toISOString().split('T')[0] %></small>
+                                <small class="text-muted">Capacidad: <%= event.Capacidad_Actual %> / <%= event.Capacidad_Maxima %></small>
+                                <div class="mt-3 text-end">
+                                    <a class="btn btn-outline-info btn-sm" href="/viewEvents/showDetails/<%= event.ID %>">Ver detalles</a>
                                 </div>
                             </li>
                         <% }); %>
                     </ul>
                 </div>
-                <!-- Paneles informativos -->
-                
-                    <div class="card mb-4">
+            
+                <!-- Panel de estadísticas -->
+                <div>
+                    <div class="card mb-4 shadow-sm">
                         <div class="card-body">
-                            <h5 class="card-title">Comentario destacado</h5>
-                            <div class="d-flex align-items-center mb-3">
-                                <i class="bi bi-star-fill text-warning me-2" style="font-size: 2rem;"></i>
-                                <span class="fs-4 fw-bold">5/5</span>
-                            </div>
-                            <p class="fs-5"><i>"MUY BUENO"</i></p>
-                            <p class="text-muted"><strong>Autor:</strong> PEPE</p>
-                        </div>
-                    </div>                    
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Estadísticas Generales</h5>
-                            <p class="card-text">Nota media: 5</p>
-                            <p class="card-text">Total participantes: 123</p>
-                            <p class="card-text">Vacantes ocupadas: 1%</p>
+                            <h5 class="card-title text-center">Estadísticas Generales</h5>
+                            <hr>
+                            <p class="card-text"><i class="bi bi-graph-up me-2"></i><strong>Nota media:</strong> <%= extras[3] %></p>
+                            <p class="card-text"><i class="bi bi-people me-2"></i><strong>Total participantes:</strong> <%= extras[1] %></p>
+                            <p class="card-text"><i class="bi bi-list-task me-2"></i><strong>Vacantes ofertadas:</strong> <%= extras[2] %></p>
+                            <p class="card-text"><i class="bi bi-calendar2-event me-2"></i><strong>Eventos ofertados:</strong> <%= extras[0] %></p>
                         </div>
                     </div>
-                
+                </div>
             </div>
+            
         <% } %>
     </div>
 
@@ -104,6 +96,8 @@
     <%- include("fragments/footer") %>
     <script src="/javascripts/events.js"></script>
     <script src="/javascripts/notificationes.js"></script>
+      <script src="/javascripts/coments.js"></script>
+
 </body>
 
 </html>
