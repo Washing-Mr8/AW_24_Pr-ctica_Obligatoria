@@ -1,10 +1,7 @@
-/* html{
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-} */
 
-body {
+.navbar{
+  margin: 10px;
+
 }
 
 .main-container{
@@ -13,7 +10,26 @@ body {
 
 }
 
+.landing-title{
+  font-size: 4rem;
+}
 
+.subtitle{
+  margin:1rem;
+
+  font-size: 3rem;
+}
+
+.joinText{
+  margin:1rem;
+  font-size: 2rem;
+
+}
+
+.indexButton{
+  margin: 4rem;
+
+}
 
 .nav_logo{
   width: 45px;;
@@ -59,7 +75,6 @@ a {
   background-position: center;
   background-size: cover;
   background-image:url("/images/stock1.webp");
-  background-attachment: fixed;
   opacity: 0.8;
 }
 
@@ -130,6 +145,10 @@ a {
   background: #00000000;
 }
 
+.footer-link{
+  margin-top: 1rem;
+  text-decoration: none;
+}
 
 .card:hover {
   transform: scale(1.05);

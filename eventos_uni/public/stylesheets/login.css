@@ -38,6 +38,11 @@ input{
     background-color: rgba(245, 245, 245, 0.693);
 }
 
+.push-button{
+    margin-top: 2.25rem;
+    margin-bottom: 1.5rem;
+}
+
 .form-content {
     margin: 40px auto;
     border-radius: 10px;
@@ -74,3 +79,7 @@ input{
     margin-bottom: 1rem;
 }
 
+#loginButton{
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}

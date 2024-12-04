@@ -18,6 +18,9 @@ $(document).ready(function () {
     var userTheme = body.attr('data-theme'); // Tema actual
     var userFontSize = body.attr('data-font-size'); // Tamaño de fuente actual
 
+    const logoImg = document.querySelector('.navbar-brand img');
+
+
     // Inicialización: sincronizar estados de botones
     cambiarTema(userTheme);
     cambiarFuente(userFontSize);
@@ -26,6 +29,10 @@ $(document).ready(function () {
     // Cambiar el tema visual y sincronizar botones
     function cambiarTema(tema) {
         console.log("Tema cambiado a: " + tema);
+
+        if (logoImg) {
+            logoImg.src = "/images/AW_logo_white.svg"; // logo blanco
+        }
 
         if(tema === "default" || tema === undefined){
             body.addClass("default");
@@ -38,6 +45,12 @@ $(document).ready(function () {
             body.attr('data-bs-theme', tema);
             modalContent.removeClass("modal-default")
             formContent.removeClass("form-default");
+
+            if(tema === "light"){
+                if (logoImg) {
+                    logoImg.src = "/images/AW_logo.svg"; // Logo oscuro para el tema claro
+                }
+            }
         }
         body.attr('data-theme', tema);
         sincronizarBotonesTema(); // Actualiza el estado de los botones
