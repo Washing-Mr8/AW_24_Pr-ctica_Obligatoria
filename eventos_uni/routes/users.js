@@ -61,6 +61,7 @@ router.post('/register', function (req, res) {
 
   pool.getConnection((err, con) => {
     if (err) {
+      con.release();
       console.error('Error al intentar acceder a la base de datos:', err);
       return res.status(500).json({ message: 'Error al acceder a la base de datos' });
     }
@@ -161,10 +162,12 @@ router.post('/login', function (req, res) {
 
       if (err) {
         console.error('Error al buscar el usuario:', err);
+        con.release();
         return res.status(500).json({ message: 'Error en el servidor.' });
       }
 
       if (user.length === 0) {
+        con.release();
         return res.status(401).json({ message: 'No existe ningun usuario con el correo proporcionado' });
       }
       const usuario = user[0];

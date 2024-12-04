@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 25-11-2024 a las 21:54:27
+-- Tiempo de generación: 04-12-2024 a las 21:34:24
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -24,6 +24,30 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `black_list`
+--
+
+CREATE TABLE `black_list` (
+  `IP` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `comentarios`
+--
+
+CREATE TABLE `comentarios` (
+  `ID` int(11) NOT NULL,
+  `valoracion` int(1) NOT NULL,
+  `mensaje` varchar(255) NOT NULL,
+  `Evento_ID` int(11) NOT NULL,
+  `Usuario_ID` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `configuracion_accesibilidad`
 --
 
@@ -33,13 +57,6 @@ CREATE TABLE `configuracion_accesibilidad` (
   `Tamano_Texto` varchar(50) DEFAULT NULL,
   `Configuracion_Navegacion` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
-
---
--- Volcado de datos para la tabla `configuracion_accesibilidad`
---
-
-INSERT INTO `configuracion_accesibilidad` (`ID`, `Paleta_Colores`, `Tamano_Texto`, `Configuracion_Navegacion`) VALUES
-(1, 'default', 'normal', 'default');
 
 -- --------------------------------------------------------
 
@@ -60,16 +77,9 @@ CREATE TABLE `eventos` (
   `Capacidad_Actual` int(11) NOT NULL,
   `IDfacultad` int(11) NOT NULL,
   `facultad` varchar(255) NOT NULL,
-  `Organizador_ID` int(11) NOT NULL
+  `Organizador_ID` int(11) NOT NULL,
+  `activo` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
-
---
--- Volcado de datos para la tabla `eventos`
---
-
-INSERT INTO `eventos` (`ID`, `Titulo`, `Descripcion`, `Fecha`, `Hora`, `Ubicacion`, `Capacidad_Maxima`, `tipo`, `Duracion`, `Capacidad_Actual`, `IDfacultad`, `facultad`, `Organizador_ID`) VALUES
-(18, 'Evento 1', '1212', '2024-11-13', '00:55:00', 'Aula 1', 123, 'taller', 123, 0, 2, 'Medicina', 2),
-(19, 'a', '1', '2024-11-01', '00:56:00', 'a', 1, 'taller', 1, 0, 1, 'Informática', 1);
 
 -- --------------------------------------------------------
 
@@ -87,11 +97,8 @@ CREATE TABLE `facultades` (
 --
 
 INSERT INTO `facultades` (`ID`, `Nombre`) VALUES
-(1, 'Informática'),
-(2, 'Medicina'),
-(3, 'Matemáticas'),
-(4, 'Filosofía');
-
+(1, 'Matematicas'),
+(7, 'Filosofia');
 
 -- --------------------------------------------------------
 
@@ -103,7 +110,20 @@ CREATE TABLE `inscripciones` (
   `Usuario_ID` int(11) NOT NULL,
   `Evento_ID` int(11) NOT NULL,
   `Estado_Inscripcion` enum('inscrito','lista de espera') NOT NULL,
-  `Fecha_Inscripcion` datetime NOT NULL
+  `Fecha_Inscripcion` datetime NOT NULL,
+  `activo` tinyint(1) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `notificaciones`
+--
+
+CREATE TABLE `notificaciones` (
+  `idUsuario` int(11) NOT NULL,
+  `ID` int(11) NOT NULL,
+  `mensaje` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
 -- --------------------------------------------------------
@@ -136,18 +156,14 @@ CREATE TABLE `usuarios` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
 --
--- Volcado de datos para la tabla `usuarios`
---
-
-INSERT INTO `usuarios` (`ID`, `Nombre`, `Correo`,`Password`, `Telefono`, `Facultad_ID`, `Rol`, `Configuraciones_ID`) VALUES
-(1, 'Juan', 'admin1@admin.com', '$2a$10$O8ycA4CUzwGRAdBirPAbG.dSSp5O2BTIBx6VWEGWkBYggH1m6z.Xq', '+11 123 456 789', 1, 'organizador', 1),
-(2, 'Pedrito', 'uncorrer@sisi.com','$2a$10$O8ycA4CUzwGRAdBirPAbG.dSSp5O2BTIBx6VWEGWkBYggH1m6z.Xq', '+22 123 456 789', 2, 'organizador', 1),
-(3, 'Pepe', 'asasas@sisi.com','$2a$10$O8ycA4CUzwGRAdBirPAbG.dSSp5O2BTIBx6VWEGWkBYggH1m6z.Xq', '+33 123 456 789', 2, 'organizador', 1),
-(4, 'asistente', 'unacorrer@sisi.com','$2a$10$O8ycA4CUzwGRAdBirPAbG.dSSp5O2BTIBx6VWEGWkBYggH1m6z.Xq', '+44 123 456 789', 2, 'asistente', 1);
-
---
 -- Índices para tablas volcadas
 --
+
+--
+-- Indices de la tabla `comentarios`
+--
+ALTER TABLE `comentarios`
+  ADD PRIMARY KEY (`ID`);
 
 --
 -- Indices de la tabla `configuracion_accesibilidad`
@@ -177,6 +193,13 @@ ALTER TABLE `inscripciones`
   ADD KEY `Evento_ID` (`Evento_ID`);
 
 --
+-- Indices de la tabla `notificaciones`
+--
+ALTER TABLE `notificaciones`
+  ADD PRIMARY KEY (`ID`),
+  ADD KEY `usuario` (`idUsuario`);
+
+--
 -- Indices de la tabla `sessions`
 --
 ALTER TABLE `sessions`
@@ -196,28 +219,40 @@ ALTER TABLE `usuarios`
 --
 
 --
+-- AUTO_INCREMENT de la tabla `comentarios`
+--
+ALTER TABLE `comentarios`
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
 -- AUTO_INCREMENT de la tabla `configuracion_accesibilidad`
 --
 ALTER TABLE `configuracion_accesibilidad`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `eventos`
 --
 ALTER TABLE `eventos`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=82;
 
 --
 -- AUTO_INCREMENT de la tabla `facultades`
 --
 ALTER TABLE `facultades`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT de la tabla `notificaciones`
+--
+ALTER TABLE `notificaciones`
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- Restricciones para tablas volcadas
@@ -236,6 +271,12 @@ ALTER TABLE `eventos`
 ALTER TABLE `inscripciones`
   ADD CONSTRAINT `inscripciones_ibfk_1` FOREIGN KEY (`Usuario_ID`) REFERENCES `usuarios` (`ID`),
   ADD CONSTRAINT `inscripciones_ibfk_2` FOREIGN KEY (`Evento_ID`) REFERENCES `eventos` (`ID`);
+
+--
+-- Filtros para la tabla `notificaciones`
+--
+ALTER TABLE `notificaciones`
+  ADD CONSTRAINT `usuario` FOREIGN KEY (`idUsuario`) REFERENCES `usuarios` (`ID`);
 
 --
 -- Filtros para la tabla `usuarios`
